@@ -1,3 +1,4 @@
+import logging
 from io import StringIO
 
 import boto3
@@ -6,6 +7,9 @@ import soccerdata as sd
 
 s3 = boto3.client('s3')
 bucket_name = 'football-raw-data'
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 
 def fetch_season_timetable(season, league):
@@ -16,7 +20,7 @@ def fetch_season_timetable(season, league):
     games_schedule = fbref.read_schedule()
 
     if games_schedule.empty:
-        print(f"No schedule data found for {league} and season {season}")
+        logger.warning(f"No schedule data found for {league} and season {season}")
         return
 
     return games_schedule
@@ -33,9 +37,9 @@ def save_to_s3(games_schedule: pd.DataFrame, s3_path: str):
     # save the file to S3
     try:
         s3.put_object(Bucket=bucket_name, Key=s3_path, Body=csv_buffer.getvalue())
-        print(f"File uploaded successfully to {s3_path}")
+        logger.info(f"File uploaded successfully to {s3_path}")
     except Exception as e:
-        print(f"Error uploading file: {e}")
+        logger.error(f"Error uploading file: {e}")
 
 
 if __name__ == "__main__":
