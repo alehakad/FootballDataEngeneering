@@ -1,0 +1,533 @@
+
+
+# summary
+MultiIndex([(       'league',        ''),
+            (       'season',        ''),
+            (         'game',        ''),
+            (         'team',        ''),
+            (       'player',        ''),
+            ('jersey_number',        ''),
+            (       'nation',        ''),
+            (          'pos',        ''),
+            (          'age',        ''),
+            (          'min',        ''),
+            (  'Performance',     'Gls'),
+            (  'Performance',     'Ast'),
+            (  'Performance',      'PK'),
+            (  'Performance',   'PKatt'),
+            (  'Performance',      'Sh'),
+            (  'Performance',     'SoT'),
+            (  'Performance',    'CrdY'),
+            (  'Performance',    'CrdR'),
+            (  'Performance', 'Touches'),
+            (  'Performance',     'Tkl'),
+            (  'Performance',     'Int'),
+            (  'Performance',  'Blocks'),
+            (     'Expected',      'xG'),
+            (     'Expected',    'npxG'),
+            (     'Expected',     'xAG'),
+            (          'SCA',     'SCA'),
+            (          'SCA',     'GCA'),
+            (       'Passes',     'Cmp'),
+            (       'Passes',     'Att'),
+            (       'Passes',    'Cmp%'),
+            (       'Passes',    'PrgP'),
+            (      'Carries', 'Carries'),
+            (      'Carries',    'PrgC'),
+            (     'Take-Ons',     'Att'),
+            (     'Take-Ons',    'Succ'),
+            (      'game_id',        '')],
+           )
+
+# keepers
+MultiIndex([(       'league',         ''),
+            (       'season',         ''),
+            (         'game',         ''),
+            (         'team',         ''),
+            (       'player',         ''),
+            (       'nation',         ''),
+            (          'age',         ''),
+            (          'min',         ''),
+            ('Shot Stopping',     'SoTA'),
+            ('Shot Stopping',       'GA'),
+            ('Shot Stopping',    'Saves'),
+            ('Shot Stopping',    'Save%'),
+            ('Shot Stopping',     'PSxG'),
+            (     'Launched',      'Cmp'),
+            (     'Launched',      'Att'),
+            (     'Launched',     'Cmp%'),
+            (       'Passes', 'Att (GK)'),
+            (       'Passes',      'Thr'),
+            (       'Passes',  'Launch%'),
+            (       'Passes',   'AvgLen'),
+            (   'Goal Kicks',      'Att'),
+            (   'Goal Kicks',  'Launch%'),
+            (   'Goal Kicks',   'AvgLen'),
+            (      'Crosses',      'Opp'),
+            (      'Crosses',      'Stp'),
+            (      'Crosses',     'Stp%'),
+            (      'Sweeper',     '#OPA'),
+            (      'Sweeper',  'AvgDist'),
+            (      'game_id',         '')],
+           )
+
+
+# passing
+MultiIndex([(       'league',        ''),
+            (       'season',        ''),
+            (         'game',        ''),
+            (         'team',        ''),
+            (       'player',        ''),
+            ('jersey_number',        ''),
+            (       'nation',        ''),
+            (          'pos',        ''),
+            (          'age',        ''),
+            (          'min',        ''),
+            (        'Total',     'Cmp'),
+            (        'Total',     'Att'),
+            (        'Total',    'Cmp%'),
+            (        'Total', 'TotDist'),
+            (        'Total', 'PrgDist'),
+            (        'Short',     'Cmp'),
+            (        'Short',     'Att'),
+            (        'Short',    'Cmp%'),
+            (       'Medium',     'Cmp'),
+            (       'Medium',     'Att'),
+            (       'Medium',    'Cmp%'),
+            (         'Long',     'Cmp'),
+            (         'Long',     'Att'),
+            (         'Long',    'Cmp%'),
+            (          'Ast',        ''),
+            (          'xAG',        ''),
+            (           'xA',        ''),
+            (           'KP',        ''),
+            (          '1/3',        ''),
+            (          'PPA',        ''),
+            (        'CrsPA',        ''),
+            (         'PrgP',        ''),
+            (      'game_id',        '')],
+           )
+
+# passing_types
+MultiIndex([(       'league',       ''),
+            (       'season',       ''),
+            (         'game',       ''),
+            (         'team',       ''),
+            (       'player',       ''),
+            ('jersey_number',       ''),
+            (       'nation',       ''),
+            (          'pos',       ''),
+            (          'age',       ''),
+            (          'min',       ''),
+            (          'Att',       ''),
+            (   'Pass Types',   'Live'),
+            (   'Pass Types',   'Dead'),
+            (   'Pass Types',     'FK'),
+            (   'Pass Types',     'TB'),
+            (   'Pass Types',     'Sw'),
+            (   'Pass Types',    'Crs'),
+            (   'Pass Types',     'TI'),
+            (   'Pass Types',     'CK'),
+            ( 'Corner Kicks',     'In'),
+            ( 'Corner Kicks',    'Out'),
+            ( 'Corner Kicks',    'Str'),
+            (     'Outcomes',    'Cmp'),
+            (     'Outcomes',    'Off'),
+            (     'Outcomes', 'Blocks'),
+            (      'game_id',       '')],
+           )
+
+# defense
+MultiIndex([(       'league',        ''),
+            (       'season',        ''),
+            (         'game',        ''),
+            (         'team',        ''),
+            (       'player',        ''),
+            ('jersey_number',        ''),
+            (       'nation',        ''),
+            (          'pos',        ''),
+            (          'age',        ''),
+            (          'min',        ''),
+            (      'Tackles',     'Tkl'),
+            (      'Tackles',    'TklW'),
+            (      'Tackles', 'Def 3rd'),
+            (      'Tackles', 'Mid 3rd'),
+            (      'Tackles', 'Att 3rd'),
+            (   'Challenges',     'Tkl'),
+            (   'Challenges',     'Att'),
+            (   'Challenges',    'Tkl%'),
+            (   'Challenges',    'Lost'),
+            (       'Blocks',  'Blocks'),
+            (       'Blocks',      'Sh'),
+            (       'Blocks',    'Pass'),
+            (          'Int',        ''),
+            (      'Tkl+Int',        ''),
+            (          'Clr',        ''),
+            (          'Err',        ''),
+            (      'game_id',        '')],
+           )
+
+# possession
+MultiIndex([(       'league',        ''),
+            (       'season',        ''),
+            (         'game',        ''),
+            (         'team',        ''),
+            (       'player',        ''),
+            ('jersey_number',        ''),
+            (       'nation',        ''),
+            (          'pos',        ''),
+            (          'age',        ''),
+            (          'min',        ''),
+            (      'Tackles',     'Tkl'),
+            (      'Tackles',    'TklW'),
+            (      'Tackles', 'Def 3rd'),
+            (      'Tackles', 'Mid 3rd'),
+            (      'Tackles', 'Att 3rd'),
+            (   'Challenges',     'Tkl'),
+            (   'Challenges',     'Att'),
+            (   'Challenges',    'Tkl%'),
+            (   'Challenges',    'Lost'),
+            (       'Blocks',  'Blocks'),
+            (       'Blocks',      'Sh'),
+            (       'Blocks',    'Pass'),
+            (          'Int',        ''),
+            (      'Tkl+Int',        ''),
+            (          'Clr',        ''),
+            (          'Err',        ''),
+            (      'game_id',        '')],
+           )
+
+# misc
+MultiIndex([(       'league',        ''),
+            (       'season',        ''),
+            (         'game',        ''),
+            (         'team',        ''),
+            (       'player',        ''),
+            ('jersey_number',        ''),
+            (       'nation',        ''),
+            (          'pos',        ''),
+            (          'age',        ''),
+            (          'min',        ''),
+            (      'Tackles',     'Tkl'),
+            (      'Tackles',    'TklW'),
+            (      'Tackles', 'Def 3rd'),
+            (      'Tackles', 'Mid 3rd'),
+            (      'Tackles', 'Att 3rd'),
+            (   'Challenges',     'Tkl'),
+            (   'Challenges',     'Att'),
+            (   'Challenges',    'Tkl%'),
+            (   'Challenges',    'Lost'),
+            (       'Blocks',  'Blocks'),
+            (       'Blocks',      'Sh'),
+            (       'Blocks',    'Pass'),
+            (          'Int',        ''),
+            (      'Tkl+Int',        ''),
+            (          'Clr',        ''),
+            (          'Err',        ''),
+            (      'game_id',        '')],
+           )
+
+
+# columns per radar chart for every position
+1. Goalkeeper
+
+    Save Percentage - Core shot-stopping metric
+
+    Calculation: Saves / SoTA
+    Columns needed: ('Shot Stopping', 'Saves'), ('Shot Stopping', 'SoTA')
+
+
+    PSxG-GA - Post-shot expected goals minus goals allowed (shows if keeper is saving more or less than expected)
+
+    Calculation: PSxG - GA
+    Columns needed: ('Shot Stopping', 'PSxG'), ('Shot Stopping', 'GA')
+
+
+    Cross Claiming Rate - Style: proactivity in aerial situations
+
+    Calculation: Stp / Opp
+    Columns needed: ('Crosses', 'Stp'), ('Crosses', 'Opp')
+
+
+    Sweeper Actions Per 90 - Style: how often keeper acts as sweeper
+
+    Calculation: #OPA / (min / 90)
+    Columns needed: ('Sweeper', '#OPA'), ('min', '')
+
+
+    Average Sweeper Distance - Style: how far off line keeper plays
+
+    Calculation: Use directly
+    Columns needed: ('Sweeper', 'AvgDist')
+
+
+    Pass Completion % - Style: ball-playing ability
+
+    Calculation: Use directly
+    Columns needed: ('Launched', 'Cmp%')
+
+
+    Goal Kick Launch % - Style: distribution approach
+
+    Calculation: Use directly
+    Columns needed: ('Goal Kicks', 'Launch%')
+
+    Columns to keep from keepers dataset:
+        ('Shot Stopping', 'SoTA'), ('Shot Stopping', 'GA'), ('Shot Stopping', 'Saves'), ('Shot Stopping', 'PSxG')
+        ('Crosses', 'Opp'), ('Crosses', 'Stp')
+        ('Sweeper', '#OPA'), ('Sweeper', 'AvgDist')
+        ('Launched', 'Cmp%')
+        ('Goal Kicks', 'Launch%')
+        ('min', '')
+
+2. Centerbacks
+
+    Aerial Duels Won % - Style: aerial dominance
+
+    Calculation: Create from possession dataset, for headers
+    Columns needed: Need to check if this exists in your data or calculate from challenges
+
+
+    Clearances Per 90 - Style: defensive approach
+
+    Calculation: Clr / (min / 90)
+    Columns needed: ('Clr', ''), ('min', '')
+
+
+    Interceptions Per 90 - Style: reading of the game
+
+    Calculation: Int / (min / 90)
+    Columns needed: ('Int', ''), ('min', '')
+
+
+    Blocks Per 90 - Core defensive metric
+
+    Calculation: Blocks / (min / 90)
+    Columns needed: ('Blocks', 'Blocks'), ('min', '')
+
+
+    Progressive Carries Per 90 - Style: ball progression
+
+    Calculation: PrgC / (min / 90)
+    Columns needed: ('Carries', 'PrgC'), ('min', '')
+
+
+    Progressive Passes Per 90 - Style: playmaking
+
+    Calculation: PrgP / (min / 90)
+    Columns needed: ('Passes', 'PrgP'), ('min', '')
+
+
+    Long Pass Completion % - Style: long-range distribution
+
+    Calculation: Use directly
+    Columns needed: ('Long', 'Cmp%')
+
+    Columns to keep from datasets:
+
+        From defense: ('Clr', ''), ('Int', ''), ('Blocks', 'Blocks'), ('min', '')
+        From possession: Need aerial duels data
+        From summary: ('Carries', 'PrgC'), ('Passes', 'PrgP')
+        From passing: ('Long', 'Cmp%')
+
+3. Fullbacks
+
+    Crosses Per 90 - Style: attacking involvement
+
+    Calculation: Crs / (min / 90)
+    Columns needed: ('Pass Types', 'Crs'), ('min', '')
+
+
+    Progressive Carries Per 90 - Style: ball progression
+
+    Calculation: PrgC / (min / 90)
+    Columns needed: ('Carries', 'PrgC'), ('min', '')
+
+
+    Successful Take-Ons Per 90 - Style: dribbling ability
+
+    Calculation: Succ / (min / 90)
+    Columns needed: ('Take-Ons', 'Succ'), ('min', '')
+
+
+    Tackles + Interceptions Per 90 - Core defensive metric
+
+    Calculation: Tkl+Int / (min / 90)
+    Columns needed: ('Tkl+Int', ''), ('min', '')
+
+
+    Progressive Passes Per 90 - Style: playmaking
+
+    Calculation: PrgP / (min / 90)
+    Columns needed: ('Passes', 'PrgP'), ('min', '')
+
+
+    Passes into Final Third Per 90 - Style: attacking contribution
+
+    Calculation: 1/3 / (min / 90)
+    Columns needed: ('1/3', ''), ('min', '')
+
+
+    Defensive Actions in Attacking Third Per 90 - Style: pressing
+
+    Calculation: Att 3rd / (min / 90)
+    Columns needed: ('Tackles', 'Att 3rd'), ('min', '')
+
+    Columns to keep from datasets:
+
+        From passing_types: ('Pass Types', 'Crs'), ('min', '')
+        From summary: ('Carries', 'PrgC'), ('Take-Ons', 'Succ'), ('Passes', 'PrgP')
+        From defense: ('Tkl+Int', ''), ('Tackles', 'Att 3rd')
+        From passing: ('1/3', '')
+
+4.Midfielders
+    Progressive Passes Per 90 - Style: playmaking
+
+    Calculation: PrgP / (min / 90)
+    Columns needed: ('Passes', 'PrgP'), ('min', '')
+
+
+    Progressive Carries Per 90 - Style: ball progression
+
+    Calculation: PrgC / (min / 90)
+    Columns needed: ('Carries', 'PrgC'), ('min', '')
+
+
+    Pass Completion % - Style: ball retention
+
+    Calculation: Use directly
+    Columns needed: ('Total', 'Cmp%')
+
+
+    Shot-Creating Actions Per 90 - Style: creativity
+
+    Calculation: SCA / (min / 90)
+    Columns needed: ('SCA', 'SCA'), ('min', '')
+
+
+    Tackles + Interceptions Per 90 - Core defensive metric
+
+    Calculation: Tkl+Int / (min / 90)
+    Columns needed: ('Tkl+Int', ''), ('min', '')
+
+
+    Passes into Final Third Per 90 - Style: attacking contribution
+
+    Calculation: 1/3 / (min / 90)
+    Columns needed: ('1/3', ''), ('min', '')
+
+
+    Pressures in Middle Third Per 90 - Style: pressing
+
+    Calculation: Mid 3rd / (min / 90)
+    Columns needed: ('Tackles', 'Mid 3rd'), ('min', '')
+
+
+
+    Columns to keep from datasets:
+
+        From summary: ('Carries', 'PrgC'), ('Passes', 'PrgP'), ('SCA', 'SCA')
+        From passing: ('Total', 'Cmp%'), ('1/3', '')
+        From defense: ('Tkl+Int', ''), ('Tackles', 'Mid 3rd')
+
+
+5. Wingers
+
+    Successful Take-Ons Per 90 - Style: dribbling ability
+
+    Calculation: Succ / (min / 90)
+    Columns needed: ('Take-Ons', 'Succ'), ('min', '')
+
+
+    Crosses Per 90 - Style: wide playmaking
+
+    Calculation: Crs / (min / 90)
+    Columns needed: ('Pass Types', 'Crs'), ('min', '')
+
+
+    Expected Assists Per 90 - Style: chance creation
+
+    Calculation: xAG / (min / 90)
+    Columns needed: ('Expected', 'xAG'), ('min', '')
+
+
+    Shots Per 90 - Style: shooting volume
+
+    Calculation: Sh / (min / 90)
+    Columns needed: ('Performance', 'Sh'), ('min', '')
+
+
+    Progressive Carries Per 90 - Style: ball progression
+
+    Calculation: PrgC / (min / 90)
+    Columns needed: ('Carries', 'PrgC'), ('min', '')
+
+
+    Goal-Creating Actions Per 90 - Style: decisive playmaking
+
+    Calculation: GCA / (min / 90)
+    Columns needed: ('SCA', 'GCA'), ('min', '')
+
+
+    Non-Penalty Expected Goals Per 90 - Core attacking metric
+
+    Calculation: npxG / (min / 90)
+    Columns needed: ('Expected', 'npxG'), ('min', '')
+
+
+
+    Columns to keep from datasets:
+
+        From summary: ('Take-Ons', 'Succ'), ('Expected', 'xAG'), ('Performance', 'Sh'), ('Carries', 'PrgC'), ('SCA', 'GCA'), ('Expected', 'npxG')
+        From passing_types: ('Pass Types', 'Crs')
+
+6. Strikers
+
+    Non-Penalty Expected Goals Per 90 - Core attacking metric
+
+    Calculation: npxG / (min / 90)
+    Columns needed: ('Expected', 'npxG'), ('min', '')
+
+
+    Shots Per 90 - Style: shooting volume
+
+    Calculation: Sh / (min / 90)
+    Columns needed: ('Performance', 'Sh'), ('min', '')
+
+
+    Shot on Target % - Style: shooting accuracy
+
+    Calculation: SoT / Sh
+    Columns needed: ('Performance', 'SoT'), ('Performance', 'Sh')
+
+
+    Touches in Attacking Penalty Area Per 90 - Style: positioning
+
+    Calculation: PPA / (min / 90)
+    Columns needed: Need to check if you have this data, likely from passing dataset
+
+
+    Aerial Duels Won % - Style: physical play
+
+    Calculation: Need to check if you have this data
+
+
+    Pressures in Attacking Third Per 90 - Style: pressing
+
+    Calculation: Att 3rd / (min / 90)
+    Columns needed: ('Tackles', 'Att 3rd'), ('min', '')
+
+
+    Goal-Creating Actions Per 90 - Style: creating for others
+
+    Calculation: GCA / (min / 90)
+    Columns needed: ('SCA', 'GCA'), ('min', '')
+
+
+
+    Columns to keep from datasets:
+
+        From summary: ('Expected', 'npxG'), ('Performance', 'Sh'), ('Performance', 'SoT'), ('SCA', 'GCA')
+        From defense: ('Tackles', 'Att 3rd')
+        From passing: ('PPA', '') (if available)
+        Need to check for aerial duels data

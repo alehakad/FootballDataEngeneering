@@ -68,11 +68,7 @@ def save_match_stats_to_s3(fbref, match_id, stat_type, season, league):
         return
 
     s3_path = f"match_stats/season={season}/league={league}/match_id={match_id}/{stat_type}.parquet"
-
     player_match_stats.reset_index(inplace=True)
-
-    csv_buffer = StringIO()
-    player_match_stats.to_csv(csv_buffer, index=False)
 
     try:
         buffer = BytesIO()

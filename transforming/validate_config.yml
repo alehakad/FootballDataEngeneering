@@ -1,0 +1,30 @@
+datasets:
+  summary:
+    columns_to_keep:
+      - player_
+    critical_columns:
+
+  keepers:
+    columns_to_keep:
+    critical_columns:
+
+
+  passing:
+    columns_to_keep:
+    critical_columns:
+
+  passing_types:
+    columns_to_keep:
+    critical_columns:
+
+  defense:
+    columns_to_keep:
+    critical_columns:
+
+  possession:
+    columns_to_keep:
+    critical_columns:
+
+  misc:
+    columns_to_keep:
+    critical_columns:
