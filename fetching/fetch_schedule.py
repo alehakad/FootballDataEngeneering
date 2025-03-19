@@ -1,16 +1,15 @@
 import logging
 from io import StringIO
-
 import boto3
 import pandas as pd
 import soccerdata as sd
+from urllib.parse import quote
 
 s3 = boto3.client('s3')
 bucket_name = 'football-raw-data'
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
-
 
 def fetch_season_timetable(season, league):
     """
@@ -48,6 +47,10 @@ if __name__ == "__main__":
 
     games_schedule = fetch_season_timetable(season, league)
 
-    s3_path = f"game_schedule/season={season}/league={league}/game_schedule_{season}_{league}.csv"
+    # URL-encode the league and season to ensure valid S3 path
+    encoded_season = quote(season)
+    encoded_league = quote(league)
+
+    s3_path = f"game_schedule/season={encoded_season}/league={encoded_league}/game_schedule_{encoded_season}_{encoded_league}.csv"
 
     save_to_s3(games_schedule, s3_path)

@@ -1,5 +1,6 @@
 import datetime
 import logging
+import urllib.parse
 from io import BytesIO, StringIO
 
 import boto3
@@ -13,11 +14,16 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
+def encode_s3_path_component(component):
+    """URL-encode a component for the S3 path."""
+    return urllib.parse.quote(component, safe='')
+
+
 def read_game_schedule_from_s3():
     """
     Read the game schedule from S3 and return a pandas DataFrame.
     """
-    schedule_key = 'game_schedule/season=2024-25/league=ENG-Premier League/game_schedule_2024-25_ENG-Premier League.csv'
+    schedule_key = 'game_schedule/season=2024-25/league=ENG-Premier%20League/game_schedule_2024-25_ENG-Premier%20League.csv'
 
     try:
         schedule_obj = s3.get_object(Bucket=bucket_name, Key=schedule_key)
@@ -67,7 +73,13 @@ def save_match_stats_to_s3(fbref, match_id, stat_type, season, league):
         logger.info(f"No data found for match_id {match_id} and stat_type {stat_type}")
         return
 
-    s3_path = f"match_stats/season={season}/league={league}/match_id={match_id}/{stat_type}.parquet"
+    # URL-encode the path components
+    encoded_season = encode_s3_path_component(season)
+    encoded_league = encode_s3_path_component(league)
+    encoded_match_id = encode_s3_path_component(match_id)
+    encoded_stat_type = encode_s3_path_component(stat_type)
+
+    s3_path = f"match_stats/season={encoded_season}/league={encoded_league}/match_id={encoded_match_id}/{encoded_stat_type}.parquet"
     player_match_stats.reset_index(inplace=True)
 
     try:

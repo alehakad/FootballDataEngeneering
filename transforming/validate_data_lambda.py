@@ -1,19 +1,28 @@
 import logging
+from urllib.parse import unquote
 
 import awswrangler as wr
+import boto3
 import yaml
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 
+s3_client = boto3.client('s3')
+
 
 def read_yaml_from_s3(s3_bucket, s3_key):
     """Read YAML configuration file from S3 using awswrangler."""
     logger.info(f"Reading YAML configuration from s3://{s3_bucket}/{s3_key}")
     try:
-        # Using awswrangler to read the file from S3 as bytes and load it into a Python object
-        config_data = wr.s3.read_bytes(path=f"s3://{s3_bucket}/{s3_key}")
+        # Using boto3 to get the object from S3
+        response = s3_client.get_object(Bucket=s3_bucket, Key=s3_key)
+
+        # Read the body of the response and decode it as a string
+        config_data = response["Body"].read().decode("utf-8")
+
+        # Load the YAML data into a Python object
         config = yaml.safe_load(config_data)
         return config
     except Exception as e:
@@ -25,12 +34,15 @@ def read_dataset_from_s3(bucket_name, s3_key):
     """Read dataset from S3 into a Pandas DataFrame using awswrangler."""
     logger.info(f"Reading dataset from s3://{bucket_name}/{s3_key}")
     try:
+        # Decode the URL-encoded path
+        s3_key_decoded = unquote(s3_key)
+
         # Using awswrangler to read the Parquet file directly from S3 into a DataFrame
-        df = wr.s3.read_parquet(path=f"s3://{bucket_name}/{s3_key}")
-        logger.info(f"Dataset loaded successfully from {s3_key}")
+        df = wr.s3.read_parquet(path=f"s3://{bucket_name}/{s3_key_decoded}")
+        logger.info(f"Dataset loaded successfully from {s3_key_decoded}")
         return df
     except Exception as e:
-        logger.error(f"Error reading dataset from s3://{bucket_name}/{s3_key}: {e}")
+        logger.error(f"Error reading dataset from s3://{bucket_name}/{s3_key_decoded}: {e}")
         raise
 
 
