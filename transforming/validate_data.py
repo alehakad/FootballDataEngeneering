@@ -3,11 +3,6 @@ import logging
 import pandas as pd
 import yaml
 
-# File paths (local)
-CONFIG_PATH = "./validate_config.yml"
-DATASET_PATH = "../test_data/summary.parquet"
-OUTPUT_PATH = "../test_res_data/summary.parquet"
-
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
@@ -58,15 +53,15 @@ def clean_dataset(df: pd.DataFrame, dataset_name, config):
     df = df.drop_duplicates()
     logger.info("Duplicates dropped.")
 
+    # Convert column names
+    df.columns = ["_".join(col.replace("'", "").strip("()").split(", ")) for col in df.columns]
+    logger.info("Column names cleaned.")
+
     # Check for missing values in critical columns
     if critical_columns and df[critical_columns].isnull().any().any():
         missing_cols = df[critical_columns].isnull().sum()
         logger.error(f"Critical columns contain missing values:\n{missing_cols}")
         raise ValueError(f"Critical columns contain missing values:\n{missing_cols}")
-
-    # Convert column names
-    df.columns = ["_".join(col.replace("'", "").strip("()").split(", ")) for col in df.columns]
-    logger.info("Column names cleaned.")
 
     # Keep only specified columns
     df = df[columns_to_keep]
@@ -90,6 +85,12 @@ def save_dataset_to_local(df, output_path):
 
 
 def main():
+    # File paths (local)
+    files = ["summary", "defense", "keepers", "misc", "passing", "passing_types", "possession"]
+    file_name = f"{files[6]}.parquet"
+    CONFIG_PATH = "./validate_config.yml"
+    DATASET_PATH = f"../test_data/{file_name}"
+    OUTPUT_PATH = f"../test_res_data/{file_name}"
     # Load YAML config from local disk
     try:
         config = read_yaml_from_local(CONFIG_PATH)

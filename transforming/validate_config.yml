@@ -1,30 +1,259 @@
 datasets:
   summary:
     columns_to_keep:
+      - league_
+      - season_
+      - game_
+      - team_
       - player_
+      - jersey_number_
+      - pos_
+      - age_
+      - min_
+      - Performance_Gls
+      - Performance_Ast
+      - Performance_Sh
+      - Performance_SoT
+      - Performance_Touches
+      - Performance_Tkl
+      - Performance_Int
+      - Performance_Blocks
+      - Expected_xG
+      - Expected_npxG
+      - Expected_xAG
+      - SCA_SCA
+      - SCA_GCA
+      - Passes_PrgP
+      - Carries_PrgC
+      - Carries_Carries
+      - Take-Ons_Succ
+      - Take-Ons_Att
+      - game_id_
     critical_columns:
+      - player_
+      - team_
+      - game_id_
+      - pos_
+      - min_
+      - Expected_xG
+      - Expected_npxG
+      - SCA_SCA
 
   keepers:
     columns_to_keep:
+      - league_
+      - season_
+      - game_
+      - team_
+      - player_
+      - nation_
+      - age_
+      - min_
+      - Shot Stopping_SoTA
+      - Shot Stopping_GA
+      - Shot Stopping_Saves
+      - Shot Stopping_Save%
+      - Shot Stopping_PSxG
+      - Launched_Cmp
+      - Launched_Att
+      - Launched_Cmp%
+      - Goal Kicks_Launch%
+      - Crosses_Opp
+      - Crosses_Stp
+      - Crosses_Stp%
+      - Sweeper_#OPA
+      - Sweeper_AvgDist
+      - game_id_
     critical_columns:
-
+      - player_
+      - team_
+      - game_id_
+      - min_
+      - Shot Stopping_SoTA
+      - Shot Stopping_GA
+      - Shot Stopping_Saves
+      - Shot Stopping_PSxG
 
   passing:
     columns_to_keep:
+      - league_
+      - season_
+      - game_
+      - team_
+      - player_
+      - jersey_number_
+      - pos_
+      - age_
+      - min_
+      - Total_Cmp
+      - Total_Att
+      - Total_Cmp%
+      - Short_Cmp%
+      - Medium_Cmp%
+      - Long_Cmp
+      - Long_Att
+      - Long_Cmp%
+      - Ast_
+      - xAG_
+      - xA_
+      - KP_
+      - 1/3_
+      - PPA_
+      - CrsPA_
+      - PrgP_
+      - game_id_
     critical_columns:
+      - player_
+      - team_
+      - game_id_
+      - min_
+      - 1/3_
+      - PPA_
+      - PrgP_
 
   passing_types:
     columns_to_keep:
+      - league_
+      - season_
+      - game_
+      - team_
+      - player_
+      - jersey_number_
+      - pos_
+      - age_
+      - min_
+      - Att_
+      - Pass Types_Live
+      - Pass Types_Dead
+      - Pass Types_FK
+      - Pass Types_TB
+      - Pass Types_Sw
+      - Pass Types_Crs
+      - Pass Types_TI
+      - Pass Types_CK
+      - Corner Kicks_In
+      - Corner Kicks_Out
+      - Outcomes_Cmp
+      - Outcomes_Off
+      - Outcomes_Blocks
+      - game_id_
     critical_columns:
+      - player_
+      - team_
+      - game_id_
+      - min_
+      - Pass Types_Crs
+      - Pass Types_TB
+      - Pass Types_Sw
 
   defense:
     columns_to_keep:
+      - league_
+      - season_
+      - game_
+      - team_
+      - player_
+      - jersey_number_
+      - pos_
+      - age_
+      - min_
+      - Tackles_Tkl
+      - Tackles_TklW
+      - Tackles_Def 3rd
+      - Tackles_Mid 3rd
+      - Tackles_Att 3rd
+      - Challenges_Tkl
+      - Challenges_Att
+      - Challenges_Tkl%
+      - Blocks_Blocks
+      - Blocks_Sh
+      - Blocks_Pass
+      - Int_
+      - Tkl+Int_
+      - Clr_
+      - Err_
+      - game_id_
     critical_columns:
+      - player_
+      - team_
+      - game_id_
+      - min_
+      - Tackles_Tkl
+      - Int_
+      - Tkl+Int_
+      - Tackles_Att 3rd
+      - Clr_
 
   possession:
     columns_to_keep:
+      - league_
+      - season_
+      - game_
+      - team_
+      - player_
+      - jersey_number_
+      - pos_
+      - age_
+      - min_
+      - Touches_Def Pen
+      - Touches_Def 3rd
+      - Touches_Mid 3rd
+      - Touches_Att 3rd
+      - Touches_Att Pen
+      - Touches_Live
+      - Take-Ons_Att
+      - Take-Ons_Succ
+      - Take-Ons_Succ%
+      - Carries_Carries
+      - Carries_TotDist
+      - Carries_PrgDist
+      - Carries_PrgC
+      - Receiving_Rec
+      - Receiving_PrgR
+      - game_id_
+
     critical_columns:
+      - player_
+      - team_
+      - game_id_
+      - min_
+      - Carries_PrgC
+      - Touches_Att Pen
+      - Take-Ons_Succ
+      - Receiving_PrgR
 
   misc:
     columns_to_keep:
+      - league_
+      - season_
+      - game_
+      - team_
+      - player_
+      - jersey_number_
+      - pos_
+      - age_
+      - min_
+      - Performance_CrdY
+      - Performance_CrdR
+      - Performance_2CrdY
+      - Performance_Fls
+      - Performance_Fld
+      - Performance_Off
+      - Performance_Crs
+      - Performance_Int
+      - Performance_TklW
+      - Performance_PKwon
+      - Performance_PKcon
+      - Performance_OG
+      - Performance_Recov
+      - Aerial Duels_Won
+      - Aerial Duels_Lost
+      - Aerial Duels_Won%
+      - game_id_
     critical_columns:
+      - player_
+      - team_
+      - game_id_
+      - min_
+      - Performance_CrdY
+      - Performance_CrdR
