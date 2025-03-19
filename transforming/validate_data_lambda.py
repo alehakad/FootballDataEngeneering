@@ -1,5 +1,5 @@
 import logging
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 
 import awswrangler as wr
 import boto3
@@ -8,6 +8,9 @@ import yaml
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
+
+logging.getLogger().setLevel(logging.INFO)
+
 
 s3_client = boto3.client('s3')
 
@@ -86,14 +89,17 @@ def clean_dataset(df, dataset_name, config):
 def save_dataset(df, s3_bucket, s3_key):
     """Save cleaned dataset to S3 using awswrangler."""
     try:
+        # URL encode the S3 path before saving
+        s3_key_encoded = quote(s3_key)
+
         # Using awswrangler to write the cleaned DataFrame back to S3 as Parquet
         wr.s3.to_parquet(
             df=df,
-            path=f"s3://{s3_bucket}/{s3_key}",
+            path=f"s3://{s3_bucket}/{s3_key_encoded}",
             dataset=True,  # To allow appending to partitions
             mode="overwrite",  # Overwrite if file exists
         )
-        logger.info(f"File uploaded successfully to s3://{s3_bucket}/{s3_key}")
+        logger.info(f"File uploaded successfully to s3://{s3_bucket}/{s3_key_encoded}")
     except Exception as e:
         logger.error(f"Error saving dataset to S3: {e}")
         raise
