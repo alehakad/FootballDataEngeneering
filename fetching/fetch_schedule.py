@@ -1,15 +1,17 @@
 import logging
 from io import StringIO
-import boto3
-import pandas as pd
-import soccerdata as sd
 from urllib.parse import quote
 
-s3 = boto3.client('s3')
+import pandas as pd
+import soccerdata as sd
+from google.cloud import storage
+
+storage_client = storage.Client()
 bucket_name = 'football-raw-data'
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 def fetch_season_timetable(season, league):
     """
@@ -25,18 +27,24 @@ def fetch_season_timetable(season, league):
     return games_schedule
 
 
-def save_to_s3(games_schedule: pd.DataFrame, s3_path: str):
+def save_to_gcs(games_schedule: pd.DataFrame, gcs_path: str):
     """
-    Saves game schedule to s3
+    Saves game schedule to Google Cloud Storage
     """
-    # convert df to csv
+    # Get the bucket
+    bucket = storage_client.bucket(bucket_name)
+
+    # Convert df to csv
     csv_buffer = StringIO()
     games_schedule.to_csv(csv_buffer, index=False)
 
-    # save the file to S3
+    # Create a blob (file) in the bucket
+    blob = bucket.blob(gcs_path)
+
+    # Upload the file
     try:
-        s3.put_object(Bucket=bucket_name, Key=s3_path, Body=csv_buffer.getvalue())
-        logger.info(f"File uploaded successfully to {s3_path}")
+        blob.upload_from_string(csv_buffer.getvalue(), content_type='text/csv')
+        logger.info(f"File uploaded successfully to {gcs_path}")
     except Exception as e:
         logger.error(f"Error uploading file: {e}")
 
@@ -51,6 +59,6 @@ if __name__ == "__main__":
     encoded_season = quote(season)
     encoded_league = quote(league)
 
-    s3_path = f"game_schedule/season={encoded_season}/league={encoded_league}/game_schedule_{encoded_season}_{encoded_league}.csv"
+    gcs_path = f"game_schedule/season={encoded_season}/league={encoded_league}/game_schedule_{encoded_season}_{encoded_league}.csv"
 
-    save_to_s3(games_schedule, s3_path)
+    save_to_gcs(games_schedule, gcs_path)

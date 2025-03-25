@@ -3,19 +3,19 @@ import logging
 import urllib.parse
 from io import BytesIO, StringIO
 
-import boto3
 import pandas as pd
 import soccerdata as sd
+from google.cloud import storage
 
-s3 = boto3.client('s3')
+storage_client = storage.Client()
 bucket_name = 'football-raw-data'
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def encode_s3_path_component(component):
-    """URL-encode a component for the S3 path."""
+def encode_gcs_path_component(component):
+    """URL-encode a component for the GCS path."""
     return urllib.parse.quote(component, safe='')
 
 
@@ -26,8 +26,9 @@ def read_game_schedule_from_s3():
     schedule_key = 'game_schedule/season=2024-25/league=ENG-Premier%20League/game_schedule_2024-25_ENG-Premier%20League.csv'
 
     try:
-        schedule_obj = s3.get_object(Bucket=bucket_name, Key=schedule_key)
-        schedule_data = schedule_obj['Body'].read().decode('utf-8')
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(schedule_key)
+        schedule_data = blob.download_as_text()
         schedule_df = pd.read_csv(StringIO(schedule_data))
         return schedule_df
     except Exception as e:
@@ -74,20 +75,24 @@ def save_match_stats_to_s3(fbref, match_id, stat_type, season, league):
         return
 
     # URL-encode the path components
-    encoded_season = encode_s3_path_component(season)
-    encoded_league = encode_s3_path_component(league)
-    encoded_match_id = encode_s3_path_component(match_id)
-    encoded_stat_type = encode_s3_path_component(stat_type)
+    encoded_season = encode_gcs_path_component(season)
+    encoded_league = encode_gcs_path_component(league)
+    encoded_match_id = encode_gcs_path_component(match_id)
+    encoded_stat_type = encode_gcs_path_component(stat_type)
 
-    s3_path = f"match_stats/season={encoded_season}/league={encoded_league}/match_id={encoded_match_id}/{encoded_stat_type}.parquet"
+    gcs_path = f"match_stats/season={encoded_season}/league={encoded_league}/match_id={encoded_match_id}/{encoded_stat_type}.parquet"
     player_match_stats.reset_index(inplace=True)
 
     try:
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(gcs_path)
+
         buffer = BytesIO()
         player_match_stats.to_parquet(buffer, index=False, engine="pyarrow")
         buffer.seek(0)
-        s3.put_object(Bucket=bucket_name, Key=s3_path, Body=buffer.getvalue())
-        logger.info(f"File uploaded successfully to s3://{bucket_name}/{s3_path}")
+
+        blob.upload_from_file(buffer, content_type='application/parquet')
+        logger.info(f"File uploaded successfully to gs://{bucket_name}/{gcs_path}")
     except Exception as e:
         logger.error(f"Error uploading file to S3: {e}")
 
