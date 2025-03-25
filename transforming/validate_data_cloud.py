@@ -1,7 +1,7 @@
 import logging
-from urllib.parse import unquote
 
 import functions_framework
+import pandas as pd
 import yaml
 from cloudevents.pydantic import CloudEvent
 from google.cloud import storage
@@ -32,8 +32,7 @@ def read_dataset_from_gcs(bucket_name, gcs_key):
     """Read dataset from Google Cloud Storage into a Pandas DataFrame."""
     logger.info(f"Reading dataset from gs://{bucket_name}/{gcs_key}")
     try:
-        # Decode the URL-encoded path
-        gcs_key_decoded = unquote(gcs_key)
+        gcs_key_decoded = gcs_key
 
         # Get the bucket and blob
         bucket = storage_client.bucket(bucket_name)
@@ -110,7 +109,7 @@ def save_dataset_to_gcs(df, bucket_name, gcs_key):
 
 
 @functions_framework.cloud_event
-def process_new_file(cloud_event: CloudEvent):
+def process_match(cloud_event: CloudEvent):
     """
        Cloud Function triggered by a new file in Cloud Storage.
 
@@ -125,12 +124,12 @@ def process_new_file(cloud_event: CloudEvent):
         logger.info(f"Successfully processed file: {gcs_key}")
 
         if not gcs_key.endswith('.parquet'):
-            logger.info(f"Received nob parquet file")
+            logger.info(f"Received not parquet file")
             return
 
         # Read config yaml file
         config_bucket = "football-raw-data"
-        config_key = "configs/validate_config.yml"
+        config_key = "config/validate_config.yml"
         config = read_yaml_from_gcs(config_bucket, config_key)
 
         # Extract dataset name from the file key
