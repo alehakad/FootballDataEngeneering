@@ -3,7 +3,6 @@ import logging
 import functions_framework
 import pandas as pd
 import yaml
-from cloudevents.pydantic import CloudEvent
 from google.cloud import storage
 
 # Set up logging
@@ -32,11 +31,9 @@ def read_dataset_from_gcs(bucket_name, gcs_key):
     """Read dataset from Google Cloud Storage into a Pandas DataFrame."""
     logger.info(f"Reading dataset from gs://{bucket_name}/{gcs_key}")
     try:
-        gcs_key_decoded = gcs_key
-
         # Get the bucket and blob
         bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob(gcs_key_decoded)
+        blob = bucket.blob(gcs_key)
 
         # Download blob to a temporary file
         temp_local_file = '/tmp/temp_dataset.parquet'
@@ -44,10 +41,10 @@ def read_dataset_from_gcs(bucket_name, gcs_key):
 
         # Read the parquet file
         df = pd.read_parquet(temp_local_file, engine='pyarrow')
-        logger.info(f"Dataset loaded successfully from {gcs_key_decoded}")
+        logger.info(f"Dataset loaded successfully from {gcs_key}")
         return df
     except Exception as e:
-        logger.error(f"Error reading dataset from gs://{bucket_name}/{gcs_key_decoded}: {e}")
+        logger.error(f"Error reading dataset from gs://{bucket_name}/{gcs_key}: {e}")
         raise
 
 
@@ -109,19 +106,13 @@ def save_dataset_to_gcs(df, bucket_name, gcs_key):
 
 
 @functions_framework.cloud_event
-def process_match(cloud_event: CloudEvent):
-    """
-       Cloud Function triggered by a new file in Cloud Storage.
-
-       Args:
-           cloud_event (google.events.cloud.storage.v1.StorageObjectData):
-           Cloud Storage event payload
-       """
+def process_match(cloud_event):
+    """ Cloud Function to process new match file from CloudStorage """
     try:
         data = cloud_event.data
         bucket_name = data["bucket"]
         gcs_key = data["name"]
-        logger.info(f"Successfully processed file: {gcs_key}")
+        logger.info(f"Started processing file: {gcs_key}")
 
         if not gcs_key.endswith('.parquet'):
             logger.info(f"Received not parquet file")
