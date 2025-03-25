@@ -1,15 +1,15 @@
 import logging
 from io import BytesIO
 
-import boto3
 import pandas as pd
 import yaml
+from google.cloud import storage
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 
-s3_client = boto3.client("s3")
+storage_client = storage.Client()
 
 
 def read_yaml_from_local(config_path):
@@ -23,17 +23,18 @@ def read_yaml_from_local(config_path):
         raise
 
 
-def read_dataset_from_s3(bucket_name, s3_key):
+def read_dataset_from_gcs(bucket_name, gcs_key):
     """Read dataset from S3 into a Pandas DataFrame."""
-    logger.info(f"Reading dataset from s3://{bucket_name}/{s3_key}")
+    logger.info(f"Reading dataset from gs://{bucket_name}/{gcs_key}")
     try:
-        obj = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
-        buffer = BytesIO(obj['Body'].read())
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(gcs_key)
+        buffer = BytesIO(blob.download_as_bytes())
         df = pd.read_parquet(buffer, engine="pyarrow")
-        logger.info(f"Dataset loaded successfully from {s3_key}")
+        logger.info(f"Dataset loaded successfully from {gcs_key}")
         return df
     except Exception as e:
-        logger.error(f"Error reading dataset from s3://{bucket_name}/{s3_key}: {e}")
+        logger.error(f"Error reading dataset from gcs://{bucket_name}/{gcs_key}: {e}")
         raise
 
 
@@ -74,18 +75,21 @@ def clean_dataset(df: pd.DataFrame, dataset_name, config):
     return df
 
 
-def save_dataset(df, output_path=None, s3_bucket=None, s3_key=None):
-    """Save cleaned dataset either locally or to S3."""
+def save_dataset_to_gcs(df, output_path=None, bucket_name=None, gcs_key=None):
+    """Save cleaned dataset either locally or to gcs."""
     try:
-        if s3_bucket and s3_key:
+        if bucket_name and gcs_key:
             # Save to S3 using BytesIO buffer
             buffer = BytesIO()
             df.to_parquet(buffer, index=False, engine="pyarrow")  # Use PyArrow to convert to Parquet
             buffer.seek(0)  # Rewind the buffer before sending to S3
 
-            # Upload to S3
-            s3_client.put_object(Bucket=s3_bucket, Key=s3_key, Body=buffer.getvalue())
-            logger.info(f"File uploaded successfully to s3://{s3_bucket}/{s3_key}")
+            # Upload to GCP
+            bucket = storage_client.bucket(bucket_name)
+            blob = bucket.blob(gcs_key)
+            blob.upload_from_file(buffer, content_type='application/parquet')
+
+            logger.info(f"File uploaded successfully to gs://{bucket_name}/{gcs_key}")
         elif output_path:
             # Save locally if S3 details are not provided
             df.to_parquet(output_path, index=False)
@@ -103,7 +107,8 @@ def main():
     CONFIG_PATH = "./validate_config.yml"
     BRONZE_BUCKET = "football-raw-data"
     SILVER_BUCKET = "football-cleaned-data"
-    BUCKET_FILE_PATH = "match_stats/season=2024-25/league=ENG-Premier League/match_id=c0e3342a"
+
+    BUCKET_FILE_PATH = "match_stats/season=2024-25/league=ENG-Premier%20League/match_id=cc5b4244"
     BRONZE_FILE_KEY = f"{BUCKET_FILE_PATH}/summary.parquet"
     SILVER_FILE_KEY = f"{BUCKET_FILE_PATH}/summary.parquet"
     # LOCAL_OUTPUT_PATH = "./summary_cleaned.parquet"  # Path for local saving
@@ -115,11 +120,10 @@ def main():
         logger.error(f"Failed to load configuration: {e}")
         return
 
-    # Read dataset from S3
     try:
-        df = read_dataset_from_s3(BRONZE_BUCKET, BRONZE_FILE_KEY)
+        df = read_dataset_from_gcs(BRONZE_BUCKET, BRONZE_FILE_KEY)
     except Exception as e:
-        logger.error(f"Failed to load dataset from S3: {e}")
+        logger.error(f"Failed to load dataset from GCS: {e}")
         return
 
     # Extract dataset name from the file key (assuming dataset name is the filename)
@@ -132,12 +136,10 @@ def main():
         logger.error(f"Error cleaning dataset: {e}")
         return
 
-    # Save cleaned dataset (to S3 or locally)
     try:
-        # Save to S3
-        save_dataset(df_cleaned, s3_bucket=SILVER_BUCKET, s3_key=SILVER_FILE_KEY)
+        save_dataset_to_gcs(df_cleaned, bucket_name=SILVER_BUCKET, gcs_key=SILVER_FILE_KEY)
 
-        # Optionally save to local as well for debugging
+        # save to local for debugging
         # save_dataset(df_cleaned, output_path=LOCAL_OUTPUT_PATH)
 
     except Exception as e:
