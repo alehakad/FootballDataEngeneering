@@ -48,6 +48,14 @@ def load_parquet_to_bigquery(cloud_event):
 
         logger.info(f"Started processing file: {gcs_key}")
 
+        # Define the folder you want to trigger on
+        allowed_folder = "match_stats/"
+
+        # Check if the file is in the right folder
+        if not gcs_key.startswith(allowed_folder):
+            logger.info(f"Skipping file {gcs_key}, not in {allowed_folder}")
+            return
+
         if not gcs_key.endswith(".parquet"):
             logger.info("Received a non-parquet file. Skipping.")
             return "File is not Parquet, skipping.", 200  # ✅ Prevent retry
