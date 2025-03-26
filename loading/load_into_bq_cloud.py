@@ -59,6 +59,14 @@ def load_parquet_to_bigquery(cloud_event):
         df['source_file'] = dataset_name
         df['ingestion_timestamp'] = pd.Timestamp.now()
 
+        # fix column names
+        df.columns = [
+            col.lower().replace("/", "_").replace(" ", "_") if not col[0].isalpha() else col.lower().replace("/",
+                                                                                                             "_").replace(
+                " ", "_")
+            for col in df.columns
+        ]
+
         dataset_id = 'players_stats'
         table_id = 'staging_stats_table'
 
