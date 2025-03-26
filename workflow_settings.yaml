@@ -1,5 +1,5 @@
 defaultProject: footballdataengineering
-defaultLocation: US
-defaultDataset: dataform
+defaultLocation: us-central1
+defaultDataset: players_stats
 defaultAssertionDataset: dataform_assertions
 dataformCoreVersion: 3.0.0

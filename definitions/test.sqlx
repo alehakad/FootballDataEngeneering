@@ -1,0 +1,7 @@
+-- config {
+--   type: "table",
+--   schema: "players_stats",
+--   name: "new_stats_rows"
+-- }
+
+-- SELECT * FROM `players_stats.staging_stats_table`
