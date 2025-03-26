@@ -19,9 +19,9 @@ def encode_gcs_path_component(component):
     return urllib.parse.quote(component, safe='')
 
 
-def read_game_schedule_from_s3():
+def read_game_schedule_from_gcs():
     """
-    Read the game schedule from S3 and return a pandas DataFrame.
+    Read the game schedule from GCS and return a pandas DataFrame.
     """
     schedule_key = 'game_schedule/season=2024-25/league=ENG-Premier%20League/game_schedule_2024-25_ENG-Premier%20League.csv'
 
@@ -32,7 +32,7 @@ def read_game_schedule_from_s3():
         schedule_df = pd.read_csv(StringIO(schedule_data))
         return schedule_df
     except Exception as e:
-        logger.error(f"Error reading game schedule from S3: {e}")
+        logger.error(f"Error reading game schedule from GCS: {e}")
         return pd.DataFrame()
 
 
@@ -59,9 +59,9 @@ def filter_played_matches(schedule_df):
     return played_matches
 
 
-def save_match_stats_to_s3(fbref, match_id, stat_type, season, league):
+def save_match_stats_to_gcs(fbref, match_id, stat_type, season, league):
     """
-    Fetch and save player match stats to an S3 bucket.
+    Fetch and save player match stats to an GCS bucket.
     """
 
     try:
@@ -94,7 +94,7 @@ def save_match_stats_to_s3(fbref, match_id, stat_type, season, league):
         blob.upload_from_file(buffer, content_type='application/parquet')
         logger.info(f"File uploaded successfully to gs://{bucket_name}/{gcs_path}")
     except Exception as e:
-        logger.error(f"Error uploading file to S3: {e}")
+        logger.error(f"Error uploading file to GCS: {e}")
 
 
 def process_and_save_stats(league, season, stats_names_list):
@@ -102,7 +102,7 @@ def process_and_save_stats(league, season, stats_names_list):
     Main function to process the schedule and save stats for each played match.
     """
     fbref = sd.FBref(leagues=league, seasons=season)
-    schedule_df = read_game_schedule_from_s3()
+    schedule_df = read_game_schedule_from_gcs()
 
     if schedule_df.empty:
         logger.warning("No schedule data found. Exiting...")
@@ -119,7 +119,7 @@ def process_and_save_stats(league, season, stats_names_list):
         logger.info(f"Fetching stats for match {match_id}...")
 
         for stat_name in stats_names_list:
-            save_match_stats_to_s3(fbref, match_id, stat_name, season, league)
+            save_match_stats_to_gcs(fbref, match_id, stat_name, season, league)
 
 
 if __name__ == "__main__":
