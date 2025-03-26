@@ -1,0 +1,6 @@
+config {
+  type: "declaration",
+  database: "footballdataengineering",
+  schema: "players_stats",
+  name: "staging_stats_table",
+}

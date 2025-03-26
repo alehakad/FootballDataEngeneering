@@ -8,7 +8,7 @@ config {
 
 SELECT
     *
-FROM `players_stats.staging_stats_table`
+FROM ${ref("staging_stats_table")}
 WHERE ingestion_timestamp > (SELECT MAX(ingestion_timestamp) FROM ${self()})
 
 
