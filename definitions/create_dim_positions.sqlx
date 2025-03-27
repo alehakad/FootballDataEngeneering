@@ -1,0 +1,24 @@
+config {
+  type: "table",
+  schema: "analytics",
+  description: "Defines position categories for players."
+}
+
+SELECT *
+FROM UNNEST([
+  STRUCT('GK' AS position_id, 'Goalkeeper' AS category),
+  STRUCT('DF' AS position_id, 'Centerback' AS category),
+  STRUCT('CB' AS position_id, 'Centerback' AS category),
+  STRUCT('FB' AS position_id, 'Fullback' AS category),
+  STRUCT('LB' AS position_id, 'Fullback' AS category),
+  STRUCT('RB' AS position_id, 'Fullback' AS category),
+  STRUCT('DM' AS position_id, 'Midfielder' AS category),
+  STRUCT('CM' AS position_id, 'Midfielder' AS category),
+  STRUCT('LM' AS position_id, 'Midfielder' AS category),
+  STRUCT('RM' AS position_id, 'Midfielder' AS category),
+  STRUCT('WM' AS position_id, 'Midfielder' AS category),
+  STRUCT('AM' AS position_id, 'Midfielder' AS category),
+  STRUCT('LW' AS position_id, 'Winger' AS category),
+  STRUCT('RW' AS position_id, 'Winger' AS category),
+  STRUCT('FW' AS position_id, 'Striker' AS category)
+]) AS dim_positions
