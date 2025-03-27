@@ -1,0 +1,58 @@
+config {
+    type: "table",
+    name: "clean_new_stats_rows",
+    description: "New match stats grouped by player and with extracted time"
+}
+
+WITH base AS (
+    SELECT DISTINCT player_
+    FROM ${ref("new_stats_rows")}
+),
+
+stats AS (
+    SELECT *
+    FROM ${ref("new_stats_rows")}
+),
+
+passing AS (
+    SELECT * FROM stats WHERE source_file = 'passing'
+),
+
+defending AS (
+    SELECT * FROM stats WHERE source_file = 'defense'
+),
+
+passing_types AS (
+    SELECT * FROM stats WHERE source_file = 'passing_types'
+),
+
+misc AS (
+    SELECT * FROM stats WHERE source_file = 'misc'
+),
+
+possession AS (
+    SELECT * FROM stats WHERE source_file = 'possession'
+),
+
+summary AS (
+    SELECT * FROM stats WHERE source_file = 'summary'
+),
+
+goalkeeping AS (
+    SELECT * FROM stats WHERE source_file = 'keepers'
+)
+
+SELECT 
+    b.player_,
+    ${generate_coalesce.generateCoalesceColumns([
+        'p', 'd', 'pt', 'm', 
+        'pos', 's', 'g'
+    ])}
+FROM base b
+LEFT JOIN passing p ON b.player_ = p.player_
+LEFT JOIN defending d ON b.player_ = d.player_
+LEFT JOIN passing_types pt ON b.player_ = pt.player_
+LEFT JOIN misc m ON b.player_ = m.player_
+LEFT JOIN possession pos ON b.player_ = pos.player_
+LEFT JOIN summary s ON b.player_ = s.player_
+LEFT JOIN goalkeeping g ON b.player_ = g.player_

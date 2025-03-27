@@ -1,7 +1,11 @@
 config {
   type: "table",
   schema: "analytics",
-  description: "Defines position categories for players."
+  description: "Defines position categories for players.",
+  columns: {
+    position_id: "Position identifier",
+    category: "Category of position"
+  }
 }
 
 SELECT *

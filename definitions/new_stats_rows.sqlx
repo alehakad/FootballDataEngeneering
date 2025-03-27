@@ -9,6 +9,6 @@ config {
 SELECT
     *
 FROM ${ref("staging_stats_table")}
--- WHERE ingestion_timestamp > (SELECT MAX(ingestion_timestamp) FROM ${self()})
+WHERE ingestion_timestamp > (SELECT MAX(ingestion_timestamp) FROM ${self()})
 
 

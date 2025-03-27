@@ -1,0 +1,12 @@
+config {
+    type: "table",
+    name: "dim_players",
+    description: "Dimension table for players",
+    columns: {
+        player_id: "Unique identifier for the player",
+        player_name: "Full name of the player",
+        birth_date: "Player's date of birth",
+        nationality: "Player's nationality"
+    },
+    uniqueKey: ["player_id"]
+}
