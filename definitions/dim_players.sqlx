@@ -1,12 +1,24 @@
 config {
-    type: "table",
+    type: "incremental",
     name: "dim_players",
     description: "Dimension table for players",
-    columns: {
-        player_id: "Unique identifier for the player",
-        player_name: "Full name of the player",
-        birth_date: "Player's date of birth",
-        nationality: "Player's nationality"
-    },
-    uniqueKey: ["player_id"]
+    uniqueKey: ["player_name", "birth_date", "nationality"],
+    schema: "analytics"
+}
+SELECT 
+    player_name,
+    birth_date,
+    nationality
+FROM 
+    ${ref("clean_new_stats_rows")}
+${ when(incremental(), 
+        `WHERE NOT EXISTS (
+            SELECT 1 
+            FROM ${self()} existing
+            WHERE 
+                existing.player_name = player_name AND
+                existing.birth_date = birth_date AND
+                existing.nationality = nationality
+        )`,
+    )
 }

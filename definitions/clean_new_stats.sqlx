@@ -44,10 +44,11 @@ goalkeeping AS (
 
 SELECT 
     -- TODO: automate with js
-    b.player_,
+    b.player_ as player_name,
     s.league_,
     s.min_,
     s.team_,
+    s.nation_ as nationality,
     REGEXP_EXTRACT(s.game_, r'(\d{4}-\d{2}-\d{2})') AS match_date,
     s.jersey_number_,
     ARRAY(
