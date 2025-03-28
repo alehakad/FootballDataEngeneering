@@ -1,7 +1,7 @@
 config {
     type: "table",
     name: "clean_new_stats_rows",
-    description: "New match stats grouped by player and with extracted time"
+    description: "New match stats grouped by player with comprehensive COALESCE"
 }
 
 WITH base AS (
@@ -43,11 +43,108 @@ goalkeeping AS (
 )
 
 SELECT 
+    -- TODO: automate with js
     b.player_,
-    ${generate_coalesce.generateCoalesceColumns([
-        'p', 'd', 'pt', 'm', 
-        'pos', 's', 'g'
-    ])}
+    s.league_,
+    s.min_,
+    s.team_,
+    REGEXP_EXTRACT(s.game_, r'(\d{4}-\d{2}-\d{2})') AS match_date,
+    s.jersey_number_,
+    ARRAY(
+        SELECT DISTINCT pos 
+        FROM UNNEST(REGEXP_EXTRACT_ALL(
+            s.pos_, 
+            r'([A-Z]{1,3})'
+        )) pos
+    ) AS positions,
+    DATE_SUB(
+        PARSE_DATE('%Y-%m-%d', REGEXP_EXTRACT(s.game_, r'(\d{4}-\d{2}-\d{2})')), 
+        INTERVAL CAST(REGEXP_EXTRACT(s.age_, r'(\d+)') AS INT64) YEAR
+    ) AS birth_date,
+    -- Performance columns
+    COALESCE(p.performance_tklw, d.performance_tklw, pt.performance_tklw, m.performance_tklw, pos.performance_tklw, s.performance_tklw, g.performance_tklw) AS performance_tklw,
+    COALESCE(p.performance_pkwon, d.performance_pkwon, pt.performance_pkwon, m.performance_pkwon, pos.performance_pkwon, s.performance_pkwon, g.performance_pkwon) AS performance_pkwon,
+    COALESCE(p.performance_pkcon, d.performance_pkcon, pt.performance_pkcon, m.performance_pkcon, pos.performance_pkcon, s.performance_pkcon, g.performance_pkcon) AS performance_pkcon,
+    COALESCE(p.performance_og, d.performance_og, pt.performance_og, m.performance_og, pos.performance_og, s.performance_og, g.performance_og) AS performance_og,
+    COALESCE(p.performance_recov, d.performance_recov, pt.performance_recov, m.performance_recov, pos.performance_recov, s.performance_recov, g.performance_recov) AS performance_recov,
+
+    -- Aerial Duels columns
+    COALESCE(p.aerial_duels_won, d.aerial_duels_won, pt.aerial_duels_won, m.aerial_duels_won, pos.aerial_duels_won, s.aerial_duels_won, g.aerial_duels_won) AS aerial_duels_won,
+    COALESCE(p.aerial_duels_lost, d.aerial_duels_lost, pt.aerial_duels_lost, m.aerial_duels_lost, pos.aerial_duels_lost, s.aerial_duels_lost, g.aerial_duels_lost) AS aerial_duels_lost,
+    COALESCE(p.`aerial_duels_won%`, d.`aerial_duels_won%`, pt.`aerial_duels_won%`, m.`aerial_duels_won%`, pos.`aerial_duels_won%`, s.`aerial_duels_won%`, g.`aerial_duels_won%`) AS `aerial_duels_won%`,
+
+    -- Tackles columns
+    COALESCE(p.tackles_tkl, d.tackles_tkl, pt.tackles_tkl, m.tackles_tkl, pos.tackles_tkl, s.tackles_tkl, g.tackles_tkl) AS tackles_tkl,
+    COALESCE(p.tackles_tklw, d.tackles_tklw, pt.tackles_tklw, m.tackles_tklw, pos.tackles_tklw, s.tackles_tklw, g.tackles_tklw) AS tackles_tklw,
+    COALESCE(p.tackles_def_3rd, d.tackles_def_3rd, pt.tackles_def_3rd, m.tackles_def_3rd, pos.tackles_def_3rd, s.tackles_def_3rd, g.tackles_def_3rd) AS tackles_def_3rd,
+    COALESCE(p.tackles_mid_3rd, d.tackles_mid_3rd, pt.tackles_mid_3rd, m.tackles_mid_3rd, pos.tackles_mid_3rd, s.tackles_mid_3rd, g.tackles_mid_3rd) AS tackles_mid_3rd,
+    COALESCE(p.tackles_att_3rd, d.tackles_att_3rd, pt.tackles_att_3rd, m.tackles_att_3rd, pos.tackles_att_3rd, s.tackles_att_3rd, g.tackles_att_3rd) AS tackles_att_3rd,
+
+    -- Challenges columns
+    COALESCE(p.challenges_tkl, d.challenges_tkl, pt.challenges_tkl, m.challenges_tkl, pos.challenges_tkl, s.challenges_tkl, g.challenges_tkl) AS challenges_tkl,
+    COALESCE(p.challenges_att, d.challenges_att, pt.challenges_att, m.challenges_att, pos.challenges_att, s.challenges_att, g.challenges_att) AS challenges_att,
+    COALESCE(p.`challenges_tkl%`, d.`challenges_tkl%`, pt.`challenges_tkl%`, m.`challenges_tkl%`, pos.`challenges_tkl%`, s.`challenges_tkl%`, g.`challenges_tkl%`) AS `challenges_tkl%`,
+
+    -- Blocks columns
+    COALESCE(p.blocks_blocks, d.blocks_blocks, pt.blocks_blocks, m.blocks_blocks, pos.blocks_blocks, s.blocks_blocks, g.blocks_blocks) AS blocks_blocks,
+    COALESCE(p.blocks_sh, d.blocks_sh, pt.blocks_sh, m.blocks_sh, pos.blocks_sh, s.blocks_sh, g.blocks_sh) AS blocks_sh,
+    COALESCE(p.blocks_pass, d.blocks_pass, pt.blocks_pass, m.blocks_pass, pos.blocks_pass, s.blocks_pass, g.blocks_pass) AS blocks_pass,
+
+    -- Interception and Clearance columns
+    COALESCE(p.int_, d.int_, pt.int_, m.int_, pos.int_, s.int_, g.int_) AS int_,
+    COALESCE(p.`tkl+int_`, d.`tkl+int_`, pt.`tkl+int_`, m.`tkl+int_`, pos.`tkl+int_`, s.`tkl+int_`, g.`tkl+int_`) AS `tkl+int_`,
+    COALESCE(p.clr_, d.clr_, pt.clr_, m.clr_, pos.clr_, s.clr_, g.clr_) AS clr_,
+    COALESCE(p.err_, d.err_, pt.err_, m.err_, pos.err_, s.err_, g.err_) AS err_,
+
+    -- Nation column
+    COALESCE(p.nation_, d.nation_, pt.nation_, m.nation_, pos.nation_, s.nation_, g.nation_) AS nation_,
+
+    -- Shot Stopping columns
+    COALESCE(p.shot_stopping_sota, d.shot_stopping_sota, pt.shot_stopping_sota, m.shot_stopping_sota, pos.shot_stopping_sota, s.shot_stopping_sota, g.shot_stopping_sota) AS shot_stopping_sota,
+    COALESCE(p.shot_stopping_ga, d.shot_stopping_ga, pt.shot_stopping_ga, m.shot_stopping_ga, pos.shot_stopping_ga, s.shot_stopping_ga, g.shot_stopping_ga) AS shot_stopping_ga,
+    COALESCE(p.shot_stopping_saves, d.shot_stopping_saves, pt.shot_stopping_saves, m.shot_stopping_saves, pos.shot_stopping_saves, s.shot_stopping_saves, g.shot_stopping_saves) AS shot_stopping_saves,
+    COALESCE(p.`shot_stopping_save%`, d.`shot_stopping_save%`, pt.`shot_stopping_save%`, m.`shot_stopping_save%`, pos.`shot_stopping_save%`, s.`shot_stopping_save%`, g.`shot_stopping_save%`) AS `shot_stopping_save%`,
+    COALESCE(p.shot_stopping_psxg, d.shot_stopping_psxg, pt.shot_stopping_psxg, m.shot_stopping_psxg, pos.shot_stopping_psxg, s.shot_stopping_psxg, g.shot_stopping_psxg) AS shot_stopping_psxg,
+
+    -- Launched columns
+    COALESCE(p.launched_cmp, d.launched_cmp, pt.launched_cmp, m.launched_cmp, pos.launched_cmp, s.launched_cmp, g.launched_cmp) AS launched_cmp,
+    COALESCE(p.launched_att, d.launched_att, pt.launched_att, m.launched_att, pos.launched_att, s.launched_att, g.launched_att) AS launched_att,
+    COALESCE(p.`launched_cmp%`, d.`launched_cmp%`, pt.`launched_cmp%`, m.`launched_cmp%`, pos.`launched_cmp%`, s.`launched_cmp%`, g.`launched_cmp%`) AS `launched_cmp%`,
+    COALESCE(p.`goal_kicks_launch%`, d.`goal_kicks_launch%`, pt.`goal_kicks_launch%`, m.`goal_kicks_launch%`, pos.`goal_kicks_launch%`, s.`goal_kicks_launch%`, g.`goal_kicks_launch%`) AS `goal_kicks_launch%`,
+
+    -- Crosses columns
+    COALESCE(p.crosses_opp, d.crosses_opp, pt.crosses_opp, m.crosses_opp, pos.crosses_opp, s.crosses_opp, g.crosses_opp) AS crosses_opp,
+    COALESCE(p.crosses_stp, d.crosses_stp, pt.crosses_stp, m.crosses_stp, pos.crosses_stp, s.crosses_stp, g.crosses_stp) AS crosses_stp,
+    COALESCE(p.`crosses_stp%`, d.`crosses_stp%`, pt.`crosses_stp%`, m.`crosses_stp%`, pos.`crosses_stp%`, s.`crosses_stp%`, g.`crosses_stp%`) AS `crosses_stp%`,
+
+    -- Sweeper columns
+    COALESCE(p.`sweeper_#opa`, d.`sweeper_#opa`, pt.`sweeper_#opa`, m.`sweeper_#opa`, pos.`sweeper_#opa`, s.`sweeper_#opa`, g.`sweeper_#opa`) AS `sweeper_#opa`,
+    COALESCE(p.sweeper_avgdist, d.sweeper_avgdist, pt.sweeper_avgdist, m.sweeper_avgdist, pos.sweeper_avgdist, s.sweeper_avgdist, g.sweeper_avgdist) AS sweeper_avgdist,
+
+    -- Total columns
+    COALESCE(p.total_cmp, d.total_cmp, pt.total_cmp, m.total_cmp, pos.total_cmp, s.total_cmp, g.total_cmp) AS total_cmp,
+    COALESCE(p.total_att, d.total_att, pt.total_att, m.total_att, pos.total_att, s.total_att, g.total_att) AS total_att,
+    COALESCE(p.`total_cmp%`, d.`total_cmp%`, pt.`total_cmp%`, m.`total_cmp%`, pos.`total_cmp%`, s.`total_cmp%`, g.`total_cmp%`) AS `total_cmp%`,
+    COALESCE(p.`short_cmp%`, d.`short_cmp%`, pt.`short_cmp%`, m.`short_cmp%`, pos.`short_cmp%`, s.`short_cmp%`, g.`short_cmp%`) AS `short_cmp%`,
+    COALESCE(p.`medium_cmp%`, d.`medium_cmp%`, pt.`medium_cmp%`, m.`medium_cmp%`, pos.`medium_cmp%`, s.`medium_cmp%`, g.`medium_cmp%`) AS `medium_cmp%`,
+
+    -- Long Pass columns
+    COALESCE(p.long_cmp, d.long_cmp, pt.long_cmp, m.long_cmp, pos.long_cmp, s.long_cmp, g.long_cmp) AS long_cmp,
+    COALESCE(p.long_att, d.long_att, pt.long_att, m.long_att, pos.long_att, s.long_att, g.long_att) AS long_att,
+    COALESCE(p.`long_cmp%`, d.`long_cmp%`, pt.`long_cmp%`, m.`long_cmp%`, pos.`long_cmp%`, s.`long_cmp%`, g.`long_cmp%`) AS `long_cmp%`,
+
+    -- Assist and Expected columns
+    COALESCE(p.ast_, d.ast_, pt.ast_, m.ast_, pos.ast_, s.ast_, g.ast_) AS ast_,
+    COALESCE(p.xag_, d.xag_, pt.xag_, m.xag_, pos.xag_, s.xag_, g.xag_) AS xag_,
+    COALESCE(p.xa_, d.xa_, pt.xa_, m.xa_, pos.xa_, s.xa_, g.xa_) AS xa_,
+
+    -- Key Pass and Other columns
+    COALESCE(p.kp_, d.kp_, pt.kp_, m.kp_, pos.kp_, s.kp_, g.kp_) AS kp_,
+    COALESCE(p.`1_3_`, d.`1_3_`, pt.`1_3_`, m.`1_3_`, pos.`1_3_`, s.`1_3_`, g.`1_3_`) AS `1_3_`,
+    COALESCE(p.ppa_, d.ppa_, pt.ppa_, m.ppa_, pos.ppa_, s.ppa_, g.ppa_) AS ppa_,
+    COALESCE(p.crspa_, d.crspa_, pt.crspa_, m.crspa_, pos.crspa_, s.crspa_, g.crspa_) AS crspa_,
+    COALESCE(p.prgp_, d.prgp_, pt.prgp_, m.prgp_, pos.prgp_, s.prgp_, g.prgp_) AS prgp_
+
 FROM base b
 LEFT JOIN passing p ON b.player_ = p.player_
 LEFT JOIN defending d ON b.player_ = d.player_
