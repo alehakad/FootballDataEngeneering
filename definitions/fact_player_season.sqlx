@@ -1,0 +1,11 @@
+config {
+    type: "incremental",
+    name: "fact_player_season",
+    description: "Fact table for every player season",
+    uniqueKey: ["player_season_id"],
+    schema: "analytics"
+}
+SELECT
+    *
+FROM
+    ${ref("clean_new_stats_rows")}
