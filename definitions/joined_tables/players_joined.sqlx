@@ -1,0 +1,17 @@
+config {
+  type: "table",
+  schema: "intermediate",
+  name: "players_joined"
+}
+
+SELECT
+   pd.player_id,
+   sr.*,
+   pd.team_id
+FROM ${ref("clean_new_stats_rows")} sr
+JOIN ${ref("clean_price_data")} pd
+ON sr.team_ = pd.team_name
+AND sr.birth_date BETWEEN DATE_SUB(pd.birth_date, INTERVAL 1 DAY) 
+                      AND DATE_ADD(pd.birth_date, INTERVAL 1 DAY)
+OR pd.birth_date BETWEEN DATE_SUB(sr.birth_date, INTERVAL 1 DAY) 
+                          AND DATE_ADD(sr.birth_date, INTERVAL 1 DAY)

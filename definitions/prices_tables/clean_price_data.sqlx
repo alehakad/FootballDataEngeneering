@@ -1,18 +1,23 @@
 config {
   type: "table",
-  schema: "football_data",
+  schema: "players_prices",
   name: "clean_price_data"
 }
 
 SELECT
-    CAST(id as int) as player_id,
+    CAST(pd.id as int) as player_id,
     name as player_name,
     position,
     DATE(dateOfBirth) as birth_date,
     height,
     foot,
     marketValue,
-    club_name,
+    CAST(club_id AS INT) as team_id,
+    team_name_tf as team_name,
     DATETIME(mv_updated_at) as last_price_update
 
-FROM ${ref("player_data")}
+FROM ${ref("player_data")} pd
+JOIN
+  ${ref("team_name_mapping")} tm
+ON
+  CAST(club_id AS INT) = tm.id
