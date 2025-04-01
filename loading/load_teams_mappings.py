@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from io import StringIO
 
 import pandas as pd
@@ -77,6 +78,27 @@ def upload_to_bigquery(df, dataset_id, table_id):
         raise
 
 
+def extract_teams(match_report):
+    if pd.isna(match_report):
+        return None, None
+
+    match_part = match_report.split("/")[-1]  # Get last part after "/"
+
+    # Remove date and league info
+    match_part = re.sub(r"-\d{1,2}-\d{4}.*", "", match_part)
+
+    # Convert hyphens to spaces
+    match_part = match_part.replace("-", " ")
+
+    # Use regex to extract exactly two team names
+    teams = re.findall(r'[A-Z][a-z]+(?:\s[A-Z][a-z]+)*', match_part)
+
+    if len(teams) < 2:
+        return None, None  # Ensure we always return two teams
+
+    return teams[0], teams[1]
+
+
 if __name__ == "__main__":
     try:
         logger.info("Starting team name matching pipeline...")
@@ -85,11 +107,36 @@ if __name__ == "__main__":
         team_data = load_json_from_gcs(bucket_name, team_json_path)
         team_df = pd.DataFrame(team_data)
 
-        # Read schedule CSV
-        timetable_df = load_csv_from_gcs(bucket_name, schedule_csv_path)
+        # # Read schedule CSV
+        # timetable_df = load_csv_from_gcs(bucket_name, schedule_csv_path)
+        # # Apply extraction
+        # timetable_df[["team1", "team2"]] = timetable_df["match_report"].dropna().apply(extract_teams).apply(pd.Series)
+        # Get unique teams
+        unique_teams = teams = [
+            "Arsenal",
+            "Aston Villa",
+            "Bournemouth",
+            "Brentford",
+            "Brighton and Hove Albion",
+            "Chelsea",
+            "Crystal Palace",
+            "Everton",
+            "Fulham",
+            "Ipswich Town",
+            "Leicester City",
+            "Liverpool",
+            "Manchester City",
+            "Manchester United",
+            "Newcastle United",
+            "Nottingham Forest",
+            "Southampton",
+            "Tottenham Hotspur",
+            "West Ham United",
+            "Wolverhampton Wanderers"
+        ]
 
         # Ensure necessary columns exist
-        if "name" not in team_df.columns or "home_team" not in timetable_df.columns:
+        if "name" not in team_df.columns:
             logger.error("Missing required columns in input data. Check JSON and CSV structures.")
             raise ValueError("Missing required columns in input data")
 
@@ -100,7 +147,7 @@ if __name__ == "__main__":
         # Perform fuzzy matching
         logger.info("Performing fuzzy matching between team names...")
         team_df["team_name_fbref"] = team_df["team_name_tf"].apply(
-            lambda x: find_best_match(x, timetable_df["home_team"].tolist())
+            lambda x: find_best_match(x, unique_teams)
         )
 
         # Upload to BigQuery

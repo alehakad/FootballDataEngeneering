@@ -55,6 +55,7 @@ if __name__ == "__main__":
 
     games_schedule = fetch_season_timetable(season, league)
 
+    games_schedule.reset_index(inplace=True)
     # URL-encode the league and season to ensure valid S3 path
     encoded_season = quote(season)
     encoded_league = quote(league)
