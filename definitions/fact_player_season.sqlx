@@ -8,4 +8,4 @@ config {
 SELECT
     *
 FROM
-    ${ref("clean_new_stats_rows")}
+    ${ref("clean_price_data")}

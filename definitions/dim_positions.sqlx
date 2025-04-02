@@ -1,11 +1,12 @@
 config {
   type: "table",
+  name: "dim_positions",
   schema: "analytics",
   description: "Defines position categories for players.",
   columns: {
     position_id: "Position identifier",
     category: "Category of position"
-  }
+  },
 }
 
 SELECT *
