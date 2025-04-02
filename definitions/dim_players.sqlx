@@ -2,23 +2,23 @@ config {
     type: "incremental",
     name: "dim_players",
     description: "Dimension table for players",
-    uniqueKey: ["player_name", "birth_date", "nationality"],
+    uniqueKey: ["player_id"],
     schema: "analytics"
 }
 SELECT 
+    player_id,
     player_name,
+    nationality,
     birth_date,
-    nationality
+    current_timestamp() as last_updated
 FROM 
-    ${ref("clean_new_stats_rows")}
-${ when(incremental(), 
-        `WHERE NOT EXISTS (
-            SELECT 1 
-            FROM ${self()} existing
-            WHERE 
-                existing.player_name = player_name AND
-                existing.birth_date = birth_date AND
-                existing.nationality = nationality
-        )`,
-    )
-}
+    ${ref("clean_price_data")}
+
+${when(incremental(), `
+WHERE
+player_id NOT IN (
+    SELECT player_id 
+    FROM ${self()}
+)`, `
+-- On full refresh, include all players
+`)}

@@ -59,15 +59,12 @@ SELECT
         )) pos
     ) AS positions,
     -- Calculate birth date by substructing age from match date
-   DATE_ADD(
     DATE_SUB(
         DATE_SUB(
             PARSE_DATE('%Y-%m-%d', REGEXP_EXTRACT(s.game_, r'(\d{4}-\d{2}-\d{2})')),
             INTERVAL CAST(REGEXP_EXTRACT(s.age_, r'(\d+)') AS INT64) YEAR
         ),
         INTERVAL CAST(REGEXP_EXTRACT(s.age_, r'-(\d+)') AS INT64) DAY
-    ),
-        INTERVAL 1 DAY
     ) AS birth_date,
     -- Performance columns
     COALESCE(p.performance_tklw, d.performance_tklw, pt.performance_tklw, m.performance_tklw, pos.performance_tklw, s.performance_tklw, g.performance_tklw) AS performance_tklw,

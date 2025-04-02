@@ -13,7 +13,8 @@ SELECT
     foot,
     marketValue,
     CAST(club_id AS INT) as team_id,
-    team_name_tf as team_name,
+    nationality,
+    team_name_fbref as team_name,
     DATETIME(mv_updated_at) as last_price_update
 
 FROM ${ref("player_data")} pd
