@@ -15,7 +15,7 @@ SELECT
     CAST(club_id AS INT) as team_id,
     nationality,
     team_name_fbref as team_name,
-    DATETIME(mv_updated_at) as last_price_update
+    DATETIME(mv_updated_at) as last_price_update,
 
 FROM ${ref("player_data")} pd
 JOIN

@@ -6,6 +6,8 @@ config {
     schema: "analytics"
 }
 SELECT
-    *
+    player_id,
+    team_id,
+    
 FROM
     ${ref("clean_price_data")}

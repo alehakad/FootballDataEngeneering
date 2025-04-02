@@ -1,0 +1,25 @@
+config {
+    type: "incremental",
+    name: "fact_prices",
+    description: "Fact table for prices of players by time",
+    uniqueKey: ["player_id", "value_date"],
+    bigquery: {
+        partitionBy : "DATE_TRUNC(value_date, YEAR)"
+    },
+    schema: "analytics"
+}
+
+SELECT 
+    id as player_id,
+    DATE(element.date) AS value_date,
+    element.marketValue AS price,
+    element.clubName AS club_name
+FROM 
+    ${ref("player_data")},
+    UNNEST(mv_history.list) AS list_item,
+    UNNEST([list_item.element]) AS element
+WHERE
+    ${ when(incremental(), 
+        `DATE(element.date) > (SELECT MAX(value_date) FROM ${self()} WHERE player_id = id)`,
+        `element.marketValue IS NOT NULL`
+    )}

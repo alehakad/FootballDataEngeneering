@@ -1,0 +1,12 @@
+config {
+    type: "incremental",
+    name: "fact_stats_total",
+    description: "Fact table for aggregated player stats per carrier",
+    uniqueKey: ["player_id"],
+    schema: "analytics"
+}
+
+select
+    *
+from
+    ${ref("players_joined")}
