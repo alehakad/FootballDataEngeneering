@@ -21,6 +21,7 @@ const structStatements = positionMappings
 
  publish("positions_mapping", {
     type: "table",
+    schema:"helpers",
     description: "Table for mapping between TF and FBref positions"
   }).query(ctx => `SELECT source_position, position_id
   FROM UNNEST([${structStatements}])`);
