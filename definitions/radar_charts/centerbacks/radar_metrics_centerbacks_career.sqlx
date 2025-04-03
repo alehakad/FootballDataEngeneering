@@ -1,0 +1,61 @@
+config {
+    type: "view",
+    name: "radar_metrics_centerbacks_career",
+    description: "Career averages for centerbacks statistics",
+    schema: "analytics"
+}
+
+WITH career_stats AS (
+    SELECT 
+        player_id,
+        SUM(minutes_played) AS total_minutes_played,
+        AVG(aerial_duels_won_rate) AS avg_aerial_duels_won_rate,
+        SUM(clearences * minutes_played) / SUM(minutes_played) * 90 AS avg_clearences,
+        SUM(interceptions * minutes_played) / SUM(minutes_played) * 90 AS avg_interceptions,
+        SUM(blocks * minutes_played) / SUM(minutes_played) * 90 AS avg_blocks,
+        SUM(progressive_passes * minutes_played) / SUM(minutes_played) * 90 AS avg_progressive_passes,
+        AVG(long_pass_completion_rate) / SUM(minutes_played) * 90 AS avg_long_pass_completion_rate,
+        AVG(defensive_aggression_index) AS avg_defensive_aggression_index
+    FROM 
+        ${ref("radar_metrics_centerbacks")}
+    GROUP BY 
+        player_id
+),
+
+percentiles AS (
+    SELECT
+        player_id,
+        PERCENT_RANK() OVER(ORDER BY avg_defensive_aggression_index) AS defensive_aggression_index_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_aerial_duels_won_rate) AS aerial_duels_won_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_clearences) AS clearences_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_interceptions) AS interceptions_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_blocks) AS blocks_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_progressive_passes) AS progressive_passes_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_long_pass_completion_rate) AS long_pass_completion_percentile
+    FROM 
+        career_stats
+)
+
+SELECT 
+    c.player_id,
+    c.total_minutes_played,
+    c.avg_aerial_duels_won_rate,
+    c.avg_clearences,
+    c.avg_interceptions,
+    c.avg_blocks,
+    c.avg_progressive_passes,
+    c.avg_long_pass_completion_rate,
+    c.avg_defensive_aggression_index,
+    p.defensive_aggression_index_percentile,
+    p.aerial_duels_won_percentile,
+    p.clearences_percentile,
+    p.interceptions_percentile,
+    p.blocks_percentile,
+    p.progressive_passes_percentile,
+    p.long_pass_completion_percentile
+FROM 
+    career_stats c
+JOIN 
+    percentiles p
+ON 
+    c.player_id = p.player_id
