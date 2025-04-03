@@ -1,0 +1,18 @@
+config {
+  type: "incremental",
+  name: "dim_matches",
+  schema: "analytics",
+  description: "Defines matches.",
+  uniqueKey: ["game_id"]
+}
+
+SELECT
+    DISTINCT game_id, 
+    match_date,
+FROM ${ref("players_joined")}
+${
+  when(incremental(), 
+  `
+  WHERE NOT EXISTS (SELECT 1 FROM ${self()} WHERE game_id = game_id)
+  `)
+}
