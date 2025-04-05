@@ -1,0 +1,24 @@
+-- check that for each player in every match there are 6 rows --
+
+config {
+  type: "assertion"
+}
+
+WITH source_counts AS ( 
+  SELECT
+      player_,
+      game_,
+      COUNT(DISTINCT source_file) AS n_sources
+  FROM ${ref("new_stats_rows")}
+  GROUP BY player_, game_
+)
+
+SELECT 
+  player_,
+  game_,
+  n_sources
+FROM source_counts
+WHERE n_sources < 6
+
+
+
