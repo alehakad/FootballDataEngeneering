@@ -1,0 +1,41 @@
+config {
+    type: "incremental",
+    name: "radar_metrics_midfielders",
+    description: "Fact table for midfielders statistics",
+    uniqueKey: ["player_id", "game_id"],
+    schema: "analytics"
+}
+
+WITH new_match_stats AS
+(
+    SELECT
+        player_id,
+        game_id,
+        season_id,
+        min_ as minutes_played,
+        -- 1)Progressive Passes Per 90
+        passes_prgp as progressive_passes,
+        -- 2)Progressive Carries Per 90
+        carries_prgc as progressive_carries,
+        -- 3)Pass Completion %
+        `total_cmp%` as pass_completion_rate,
+        -- 4)Shot-Creating Actions Per 90
+        sca_sca as shot_creating_actions,
+        -- 5)Defensive Contribution: Calculated as (tkl_ + int_ + performance_recov) / performance_touches
+        SAFE_DIVIDE(performance_tkl + int_ + performance_recov, performance_touches) as defensive_work,
+        -- 6)Passes into Final Third Per 90
+        `1_3_` as final_third_passes,
+        -- 7)Ball Retention
+        SAFE_DIVIDE(`take-ons_succ` + carries_carries + passes_prgp, pass_types_live + outcomes_blocks ) as goal_creating_actions
+
+    FROM
+        ${ref("players_joined")}
+    WHERE
+        'DM' IN UNNEST(positions) or 'AM' IN UNNEST(positions)
+        or 'LM' IN UNNEST(positions) or 'RM' IN UNNEST(positions)
+)
+
+SELECT 
+    *
+FROM
+    new_match_stats

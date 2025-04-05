@@ -1,0 +1,40 @@
+config {
+    type: "incremental",
+    name: "radar_metrics_wingers",
+    description: "Fact table for wingers statistics",
+    uniqueKey: ["player_id", "game_id"],
+    schema: "analytics"
+}
+
+WITH new_match_stats AS
+(
+    SELECT
+        player_id,
+        game_id,
+        season_id,
+        min_ as minutes_played,
+        -- 1)Successful Take-Ons Per 90
+        `take-ons_succ` as successful_take_ons,
+        -- 2)Crosses Per 90 
+        pass_types_crs as crosses,
+        -- 3)Shots Per 90 
+        performance_sh as shots,
+        -- 4)Progressive Carries Per 90
+        carries_prgc as progressive_carries,
+        -- 5)Aerial Duels Won %
+        `aerial_duels_won%` as aerial_duels_won_rate,
+        -- 6)Goal-Creating Actions Per 90
+       sca_gca as goal_creating_actions,
+        -- 7)Non-Penalty Expected Goals Per 90
+        expected_npxg as non_penalty_xg
+
+    FROM
+        ${ref("players_joined")}
+    WHERE
+        'RW' IN UNNEST(positions) or 'LW' IN UNNEST(positions)
+)
+
+SELECT 
+    *
+FROM
+    new_match_stats
