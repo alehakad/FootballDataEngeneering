@@ -1,0 +1,40 @@
+config {
+    type: "incremental",
+    name: "radar_metrics_strikers",
+    description: "Fact table for strikers statistics",
+    uniqueKey: ["player_id", "game_id"],
+    schema: "analytics"
+}
+
+WITH new_match_stats AS
+(
+    SELECT
+        player_id,
+        game_id,
+        season_id,
+        min_ as minutes_played,
+        -- 1)Non-Penalty Expected Goals Per 90
+        expected_npxg as non_penalty_xg,
+        -- 2)Shots Per 90 
+        performance_sh as shots,
+        -- 3)Shots on Target %
+        SAFE_DIVIDE(performance_sot, performance_sh) as shots_accuracy,
+        -- 4)Pressing Effectiveness
+        SAFE_DIVIDE(tackles_att_3rd, touches_att_3rd) as pressing_effectivness,
+        -- 5)Aerial Duels Won %
+        `aerial_duels_won%` as aerial_duels_won_rate,
+        -- 6) Box Presence
+        SAFE_DIVIDE(touches_att_pen, performance_touches) as box_presence,
+        -- 7)Goal-Creating Actions Per 90
+        sca_gca as goal_creating_actions
+
+    FROM
+        ${ref("players_joined")}
+    WHERE
+        'FW' IN UNNEST(positions)
+)
+
+SELECT 
+    *
+FROM
+    new_match_stats

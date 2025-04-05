@@ -31,7 +31,7 @@ WITH new_match_stats AS
     FROM
         ${ref("players_joined")}
     WHERE
-        'RB' IN UNNEST(positions) or 'LB' in UNNEST(positions)
+        'RB' IN UNNEST(positions) or 'LB' in UNNEST(positions) or 'WB' in UNNEST(positions)
 )
 
 SELECT 

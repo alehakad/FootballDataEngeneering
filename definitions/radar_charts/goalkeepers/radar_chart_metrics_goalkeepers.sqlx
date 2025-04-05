@@ -1,0 +1,40 @@
+config {
+    type: "incremental",
+    name: "radar_metrics_goalkeepers",
+    description: "Fact table for goalkeeper statistics",
+    uniqueKey: ["player_id", "game_id"],
+    schema: "analytics"
+}
+
+WITH new_match_stats AS
+(
+    SELECT
+        player_id,
+        game_id,
+        season_id,
+        min_ as minutes_played,
+        -- 1)Save Percentage
+        `shot_stopping_save%` as save_percentage,
+        -- 2)PSxG-GA
+        shot_stopping_psxg-shot_stopping_ga as delta_saves,
+        -- 3)Cross Claiming Rate
+        `crosses_stp%` as crosses_stop_rate,
+        -- 4) Sweeper Actions Per 90 
+        `sweeper_#opa` as sweeper_actions,
+        -- 5) Average Sweeper Distance
+        sweeper_avgdist as average_sweeper_distance,
+        -- 6) Pass Completion %
+        `1_3_` as final_third_passes,
+        -- 7) Goal Kick Launch %
+        `goal_kicks_launch%` as goal_kick_launch_rate
+
+    FROM
+        ${ref("players_joined")}
+    WHERE
+        'GK' IN UNNEST(positions)
+)
+
+SELECT 
+    *
+FROM
+    new_match_stats
