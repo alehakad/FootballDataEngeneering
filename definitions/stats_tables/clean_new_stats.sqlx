@@ -1,7 +1,11 @@
 config {
     type: "table",
     name: "clean_new_stats_rows",
-    description: "New match stats grouped by player with comprehensive COALESCE"
+    description: "New match stats grouped by player with comprehensive COALESCE",
+    assertions: {
+        nonNull: ["player_id"],
+        uniqueKey: [["player_id", "game_id"]],
+    }
 }
 
 WITH base AS (
