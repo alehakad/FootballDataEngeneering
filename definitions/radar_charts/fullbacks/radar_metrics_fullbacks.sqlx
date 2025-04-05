@@ -1,0 +1,40 @@
+config {
+    type: "incremental",
+    name: "radar_metrics_fullbacks",
+    description: "Fact table for fullbacks statistics",
+    uniqueKey: ["player_id", "game_id"],
+    schema: "analytics"
+}
+
+WITH new_match_stats AS
+(
+    SELECT
+        player_id,
+        game_id,
+        season_id,
+        min_ as minutes_played,
+        -- 1)Crosses Per 90
+        pass_types_crs as crosses,
+        -- 2)Progressive Carries Per 90
+        carries_prgc as progressive_carries,
+        -- 3)Successful Take-On rate
+        `take-ons_succ%` as successful_take_ons,
+        -- 4) Tackles + Interceptions Per 90 
+        (tackles_tkl + int_) as defensive_work,
+        -- 5) Progressive Passes Per 90 
+        prgp_ as progressive_passes,
+        -- 6) Passes into Final Third Per 90 
+        `1_3_` as final_third_passes,
+        -- 7) Attacking Contribution
+        performance_ast + performance_crs + touches_att_3rd as attacking_contribution
+
+    FROM
+        ${ref("players_joined")}
+    WHERE
+        'RB' IN UNNEST(positions) or 'LB' in UNNEST(positions)
+)
+
+SELECT 
+    *
+FROM
+    new_match_stats
