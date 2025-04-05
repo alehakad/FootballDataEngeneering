@@ -5,7 +5,7 @@ config {
 }
 
 WITH base AS (
-    SELECT DISTINCT player_
+    SELECT DISTINCT player_, game_
     FROM ${ref("new_stats_rows")}
 ),
 
@@ -153,10 +153,10 @@ SELECT
     COALESCE(p.prgp_, d.prgp_, pt.prgp_, m.prgp_, pos.prgp_, s.prgp_, g.prgp_) AS prgp_
 
 FROM base b
-LEFT JOIN passing p ON b.player_ = p.player_
-LEFT JOIN defending d ON b.player_ = d.player_
-LEFT JOIN passing_types pt ON b.player_ = pt.player_
-LEFT JOIN misc m ON b.player_ = m.player_
-LEFT JOIN possession pos ON b.player_ = pos.player_
-LEFT JOIN summary s ON b.player_ = s.player_
-LEFT JOIN goalkeeping g ON b.player_ = g.player_
+LEFT JOIN passing p ON b.player_ = p.player_ and b.game_ = p.game_
+LEFT JOIN defending d ON b.player_ = d.player_ and b.game_ = d.game_
+LEFT JOIN passing_types pt ON b.player_ = pt.player_ and b.game_ = pt.game_
+LEFT JOIN misc m ON b.player_ = m.player_ and b.game_ = m.game_
+LEFT JOIN possession pos ON b.player_ = pos.player_ and b.game_ = pos.game_
+LEFT JOIN summary s ON b.player_ = s.player_ and b.game_ = s.game_
+LEFT JOIN goalkeeping g ON b.player_ = g.player_ and b.game_ = g.game_

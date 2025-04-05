@@ -2,12 +2,13 @@ config {
     type: "incremental",
     name: "radar_metrics_centerbacks",
     description: "Fact table for centerbacks statistics",
+    uniqueKey: ["player_id", "game_id"],
     schema: "analytics"
 }
 
 WITH new_match_stats AS
 (
-    SELECT 
+    SELECT
         player_id,
         game_id,
         season_id,
