@@ -60,6 +60,6 @@ if __name__ == "__main__":
     encoded_season = quote(season)
     encoded_league = quote(league)
 
-    gcs_path = f"game_schedule/season={encoded_season}/league={encoded_league}/game_schedule_{encoded_season}_{encoded_league}.csv"
+    gcs_path = f"game_schedule/game_schedule_{encoded_season}_{encoded_league}.csv"
 
     save_to_gcs(games_schedule, gcs_path)
