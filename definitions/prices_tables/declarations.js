@@ -15,3 +15,9 @@ declare({
   schema: "helpers",
   name: "team_name_mapping"
 });
+
+declare({
+  database: "footballdataengineering",
+  schema: "helpers",
+  name: "timetable_status"
+});

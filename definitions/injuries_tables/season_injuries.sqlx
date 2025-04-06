@@ -1,0 +1,12 @@
+config {
+  type: "view",
+  schema: "players_injuries",
+  name: "season_injuries"
+}
+
+SELECT
+    player_id,
+    days_out,
+    ROUND(days_out / 365.0, 3) AS year_fraction,
+    season
+FROM ${ref("clean_injuries_data")} ci

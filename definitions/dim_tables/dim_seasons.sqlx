@@ -3,20 +3,19 @@ config {
   name: "dim_seasons",
   schema: "analytics",
   description: "Defines seasons.",
-  uniqueKey: ["league_id", "season_id"]
+  uniqueKey: ["season_id"]
 }
 
 SELECT DISTINCT
-    league_id,
-    season_id
-FROM ${ref("players_joined")}
+    season as season_name,
+
+FROM ${ref("clean_injuries_data")}
 ${
     when(incremental(),
     `
     WHERE NOT EXISTS (
         SELECT 1 
         FROM ${self()} t
-        WHERE t.league_id = league_id
-          AND t.season_id = season_id
+        WHERE t.season_id = season_id
     )`)
 }

@@ -1,0 +1,29 @@
+config {
+  type: "view",
+  schema: "players_injuries",
+  name: "career_injuries"
+}
+
+WITH all_career AS (
+  SELECT
+    player_id,
+    SUM(days_out) AS total_days_out
+  FROM ${ref("clean_injuries_data")}
+  GROUP BY player_id
+),
+all_seasons AS (
+  SELECT
+    player_id,
+    COUNT(DISTINCT EXTRACT(YEAR FROM value_date)) AS num_of_seasons
+  FROM ${ref("fact_prices")}
+  GROUP BY player_id
+  HAVING COUNT(DISTINCT EXTRACT(YEAR FROM value_date)) > 0
+)
+SELECT
+  ac.player_id,
+  ac.total_days_out,
+  als.num_of_seasons,
+  ROUND(ac.total_days_out / (als.num_of_seasons * 365), 4) AS year_fraction
+FROM all_career AS ac
+JOIN all_seasons als
+  ON ac.player_id = als.player_id

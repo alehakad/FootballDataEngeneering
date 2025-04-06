@@ -1,0 +1,12 @@
+config {
+  type: "incremental",
+  schema: "players_injuries",
+  name: "clean_injuries_data"
+}
+
+SELECT
+    CAST(player_id AS INT64) AS player_id,
+    SUM(days_out) AS days_out,
+    season
+FROM ${ref("injuries_data")} ci
+GROUP BY player_id, season

@@ -7,9 +7,17 @@ config {
 }
 
 SELECT
-    DISTINCT game_id, 
-    match_date,
-FROM ${ref("players_joined")}
+    DISTINCT game as game_id,
+    season as season_id,
+    week as game_week,
+    date as match_date,
+    league as league_id,
+    home_team,
+    away_team,
+    venue as stadium,
+    referee,
+    attendance
+FROM ${ref("timetable_status")}
 ${
   when(incremental(), 
   `
