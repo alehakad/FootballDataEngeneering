@@ -2,12 +2,22 @@ config {
     type: "incremental",
     name: "fact_player_season",
     description: "Fact table for every player season",
-    uniqueKey: ["player_season_id"],
+    uniqueKey: ["player_id", "team_id", "season_id"],
     schema: "analytics"
 }
 SELECT
     player_id,
     team_id,
+    '2425' as season_id
     
 FROM
     ${ref("clean_price_data")}
+${
+    when(incremental(),
+    `WHERE NOT EXISTS (
+        SELECT 1 FROM ${self()}
+        WHERE player_id = player_id
+        AND team_id = team_id
+        AND season_id = season_id
+    )`)
+}
