@@ -10,7 +10,7 @@ config {
 }
 
 SELECT 
-    id as player_id,
+    CAST(id as INT64) as player_id,
     DATE(element.date) AS value_date,
     element.marketValue AS price,
     element.clubName AS club_name

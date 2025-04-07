@@ -26,4 +26,4 @@ SELECT
   ROUND(ac.total_days_out / (als.num_of_seasons * 365), 4) AS year_fraction
 FROM all_career AS ac
 JOIN all_seasons als
-  ON ac.player_id = als.player_id
+  ON ac.player_id  = als.player_id
