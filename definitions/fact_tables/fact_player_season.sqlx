@@ -8,10 +8,12 @@ config {
 SELECT
     player_id,
     team_id,
-    '2425' as season_id
-    
+    '2425' as season_id,
+    category as position_category
 FROM
-    ${ref("clean_price_data")}
+    ${ref("clean_price_data")} cpd
+JOIN ${ref("dim_positions")} dp
+ON cpd.position = dp.position_name
 ${
     when(incremental(),
     `WHERE NOT EXISTS (

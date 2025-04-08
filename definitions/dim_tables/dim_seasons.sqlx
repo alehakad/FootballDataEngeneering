@@ -7,8 +7,8 @@ config {
 }
 
 SELECT DISTINCT
-    season as season_name,
-    REPLACE(season, '/', '') AS season_id
+    REPLACE(season, '/', '') AS season_id,
+    season as season_name
 FROM ${ref("clean_injuries_data")}
 ${
     when(incremental(),

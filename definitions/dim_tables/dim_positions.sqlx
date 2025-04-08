@@ -4,26 +4,27 @@ config {
   schema: "analytics",
   description: "Defines position categories for players.",
   columns: {
-    position_id: "Position identifier",
+    position_id: "Position identifier from FbRef",
+    position_name: "Name of position from Transfermarkt",
     category: "Category of position"
   },
 }
 
 SELECT *
 FROM UNNEST([
-  STRUCT('GK' AS position_id, 'Goalkeeper' AS category),
-  STRUCT('DF' AS position_id, 'Centerback' AS category),
-  STRUCT('CB' AS position_id, 'Centerback' AS category),
-  STRUCT('FB' AS position_id, 'Fullback' AS category),
-  STRUCT('LB' AS position_id, 'Fullback' AS category),
-  STRUCT('RB' AS position_id, 'Fullback' AS category),
-  STRUCT('DM' AS position_id, 'Midfielder' AS category),
-  STRUCT('CM' AS position_id, 'Midfielder' AS category),
-  STRUCT('LM' AS position_id, 'Midfielder' AS category),
-  STRUCT('RM' AS position_id, 'Midfielder' AS category),
-  STRUCT('WM' AS position_id, 'Midfielder' AS category),
-  STRUCT('AM' AS position_id, 'Midfielder' AS category),
-  STRUCT('LW' AS position_id, 'Winger' AS category),
-  STRUCT('RW' AS position_id, 'Winger' AS category),
-  STRUCT('FW' AS position_id, 'Striker' AS category)
+  STRUCT('GK' AS position_id, 'Goalkeeper' AS position_name, 'Goalkeeper' AS category),
+  STRUCT('DF' AS position_id, 'Centre-Back' AS position_name, 'Centerback' AS category),
+  STRUCT('CB' AS position_id, 'Centre-Back' AS position_name, 'Centerback' AS category),
+  STRUCT('FB' AS position_id, 'Fullback' AS position_name, 'Fullback' AS category),
+  STRUCT('LB' AS position_id, 'Left-Back' AS position_name, 'Fullback' AS category),
+  STRUCT('RB' AS position_id, 'Right-Back' AS position_name, 'Fullback' AS category),
+  STRUCT('DM' AS position_id, 'Defensive Midfield' AS position_name, 'Midfielder' AS category),
+  STRUCT('CM' AS position_id, 'Central Midfield' AS position_name, 'Midfielder' AS category),
+  STRUCT('LM' AS position_id, 'Left Midfield' AS position_name, 'Midfielder' AS category),
+  STRUCT('RM' AS position_id, 'Right Midfield' AS position_name, 'Midfielder' AS category),
+  STRUCT('WM' AS position_id, 'Wide Midfield' AS position_name, 'Midfielder' AS category),
+  STRUCT('AM' AS position_id, 'Attacking Midfield' AS position_name, 'Midfielder' AS category),
+  STRUCT('LW' AS position_id, 'Left Winger' AS position_name, 'Winger' AS category),
+  STRUCT('RW' AS position_id, 'Right Winger' AS position_name, 'Winger' AS category),
+  STRUCT('FW' AS position_id, 'Centre-Forward' AS position_name, 'Striker' AS category)
 ]) AS dim_positions
