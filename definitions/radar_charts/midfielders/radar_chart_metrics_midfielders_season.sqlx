@@ -1,6 +1,6 @@
 config {
     type: "view",
-    name: "radar_metrics_midfielders_season",
+    name: "radar_metrics_midfielders_seasons",
     description: "Season averages and percentiles for midfielders statistics",
     schema: "analytics",
     tags:["radar", "season"]

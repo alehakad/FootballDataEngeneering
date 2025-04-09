@@ -1,6 +1,6 @@
 config {
     type: "view",
-    name: "radar_metrics_wingers_season",
+    name: "radar_metrics_wingers_seasons",
     description: "Season averages and percentiles for wingers statistics",
     schema: "analytics",
     tags:["radar", "season"]

@@ -1,6 +1,6 @@
 config {
     type: "view",
-    name: "radar_metrics_strikers_season",
+    name: "radar_metrics_strikers_seasons",
     description: "Season averages and percentiles for strikers statistics",
     schema: "analytics",
     tags:["radar", "season"]
