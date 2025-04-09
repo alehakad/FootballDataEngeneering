@@ -6,25 +6,26 @@ config {
   columns: {
     position_id: "Position identifier from FbRef",
     position_name: "Name of position from Transfermarkt",
-    category: "Category of position"
+    category: "Category of position",
+    radar_metrics_table: "Relevant radar metrics table name"
   },
 }
 
 SELECT *
 FROM UNNEST([
-  STRUCT('GK' AS position_id, 'Goalkeeper' AS position_name, 'Goalkeeper' AS category),
-  STRUCT('DF' AS position_id, 'Centre-Back' AS position_name, 'Centerback' AS category),
-  STRUCT('CB' AS position_id, 'Centre-Back' AS position_name, 'Centerback' AS category),
-  STRUCT('FB' AS position_id, 'Fullback' AS position_name, 'Fullback' AS category),
-  STRUCT('LB' AS position_id, 'Left-Back' AS position_name, 'Fullback' AS category),
-  STRUCT('RB' AS position_id, 'Right-Back' AS position_name, 'Fullback' AS category),
-  STRUCT('DM' AS position_id, 'Defensive Midfield' AS position_name, 'Midfielder' AS category),
-  STRUCT('CM' AS position_id, 'Central Midfield' AS position_name, 'Midfielder' AS category),
-  STRUCT('LM' AS position_id, 'Left Midfield' AS position_name, 'Midfielder' AS category),
-  STRUCT('RM' AS position_id, 'Right Midfield' AS position_name, 'Midfielder' AS category),
-  STRUCT('WM' AS position_id, 'Wide Midfield' AS position_name, 'Midfielder' AS category),
-  STRUCT('AM' AS position_id, 'Attacking Midfield' AS position_name, 'Midfielder' AS category),
-  STRUCT('LW' AS position_id, 'Left Winger' AS position_name, 'Winger' AS category),
-  STRUCT('RW' AS position_id, 'Right Winger' AS position_name, 'Winger' AS category),
-  STRUCT('FW' AS position_id, 'Centre-Forward' AS position_name, 'Striker' AS category)
+  STRUCT('GK' AS position_id, 'Goalkeeper' AS position_name, 'Goalkeeper' AS category, 'radar_metrics_goalkeepers' AS radar_metrics_table),
+  STRUCT('DF' AS position_id, 'Centre-Back' AS position_name, 'Centerback' AS category, 'radar_metrics_centerbacks' AS radar_metrics_table),
+  STRUCT('CB' AS position_id, 'Centre-Back' AS position_name, 'Centerback' AS category, 'radar_metrics_centerbacks' AS radar_metrics_table),
+  STRUCT('FB' AS position_id, 'Fullback' AS position_name, 'Fullback' AS category, 'radar_metrics_fullbacks' AS radar_metrics_table),
+  STRUCT('LB' AS position_id, 'Left-Back' AS position_name, 'Fullback' AS category, 'radar_metrics_fullbacks' AS radar_metrics_table),
+  STRUCT('RB' AS position_id, 'Right-Back' AS position_name, 'Fullback' AS category, 'radar_metrics_fullbacks' AS radar_metrics_table),
+  STRUCT('DM' AS position_id, 'Defensive Midfield' AS position_name, 'Midfielder' AS category, 'radar_metrics_midfielders' AS radar_metrics_table),
+  STRUCT('CM' AS position_id, 'Central Midfield' AS position_name, 'Midfielder' AS category, 'radar_metrics_midfielders' AS radar_metrics_table),
+  STRUCT('LM' AS position_id, 'Left Midfield' AS position_name, 'Midfielder' AS category, 'radar_metrics_midfielders' AS radar_metrics_table),
+  STRUCT('RM' AS position_id, 'Right Midfield' AS position_name, 'Midfielder' AS category, 'radar_metrics_midfielders' AS radar_metrics_table),
+  STRUCT('WM' AS position_id, 'Wide Midfield' AS position_name, 'Midfielder' AS category, 'radar_metrics_midfielders' AS radar_metrics_table),
+  STRUCT('AM' AS position_id, 'Attacking Midfield' AS position_name, 'Midfielder' AS category, 'radar_metrics_midfielders' AS radar_metrics_table),
+  STRUCT('LW' AS position_id, 'Left Winger' AS position_name, 'Winger' AS category, 'radar_metrics_wingers' AS radar_metrics_table),
+  STRUCT('RW' AS position_id, 'Right Winger' AS position_name, 'Winger' AS category, 'radar_metrics_wingers' AS radar_metrics_table),
+  STRUCT('FW' AS position_id, 'Centre-Forward' AS position_name, 'Striker' AS category, 'radar_metrics_strikers' AS radar_metrics_table)
 ]) AS dim_positions

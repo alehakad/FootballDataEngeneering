@@ -1,0 +1,64 @@
+config {
+    type: "view",
+    name: "radar_metrics_fullbacks_seasons",
+    description: "Season averages and percentiles for fullbacks statistics",
+    schema: "analytics",
+    tags:["radar", "season"]
+}
+WITH season_stats AS (
+    SELECT 
+        player_id,
+        season_id,
+        SUM(minutes_played) AS total_minutes_played,
+        
+        -- Weighted metrics per 90
+        SUM(crosses * minutes_played) / SUM(minutes_played) * 90 AS avg_crosses,
+        SUM(progressive_carries * minutes_played) / SUM(minutes_played) * 90 AS avg_progressive_carries,
+        AVG(successful_take_ons) AS avg_successful_take_ons,
+        SUM(defensive_work * minutes_played) / SUM(minutes_played) * 90 AS avg_defensive_work,
+        SUM(progressive_passes * minutes_played) / SUM(minutes_played) * 90 AS avg_progressive_passes,
+        SUM(final_third_passes * minutes_played) / SUM(minutes_played) * 90 AS avg_final_third_passes,
+        SUM(attacking_contribution * minutes_played) / SUM(minutes_played) * 90 AS avg_attacking_contribution
+    FROM 
+        ${ref("radar_metrics_fullbacks")}
+    GROUP BY 
+        player_id, season_id
+),
+percentiles AS (
+    SELECT
+        player_id,
+        season_id,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_crosses) AS crosses_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_progressive_carries) AS progressive_carries_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_successful_take_ons) AS successful_take_ons_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_defensive_work) AS defensive_work_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_progressive_passes) AS progressive_passes_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_final_third_passes) AS final_third_passes_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_attacking_contribution) AS attacking_contribution_percentile
+    FROM 
+        season_stats
+)
+SELECT 
+    s.player_id,
+    s.season_id,
+    s.total_minutes_played,
+    s.avg_crosses,
+    s.avg_progressive_carries,
+    s.avg_successful_take_ons,
+    s.avg_defensive_work,
+    s.avg_progressive_passes,
+    s.avg_final_third_passes,
+    s.avg_attacking_contribution,
+    
+    p.crosses_percentile,
+    p.progressive_carries_percentile,
+    p.successful_take_ons_percentile,
+    p.defensive_work_percentile,
+    p.progressive_passes_percentile,
+    p.final_third_passes_percentile,
+    p.attacking_contribution_percentile
+FROM 
+    season_stats s
+JOIN 
+    percentiles p
+USING (player_id, season_id)

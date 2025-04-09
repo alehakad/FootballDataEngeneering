@@ -1,0 +1,71 @@
+config {
+    type: "view",
+    name: "radar_metrics_midfielders_season",
+    description: "Season averages and percentiles for midfielders statistics",
+    schema: "analytics",
+    tags:["radar", "season"]
+}
+
+WITH season_stats AS (
+    SELECT 
+        player_id,
+        season_id,
+        SUM(minutes_played) AS total_minutes_played,
+        
+        -- Weighted metrics per 90
+        SUM(progressive_passes * minutes_played) / SUM(minutes_played) * 90 AS avg_progressive_passes,
+        SUM(progressive_carries * minutes_played) / SUM(minutes_played) * 90 AS avg_progressive_carries,
+        SUM(shot_creating_actions * minutes_played) / SUM(minutes_played) * 90 AS avg_shot_creating_actions,
+        SUM(defensive_work * minutes_played) / SUM(minutes_played) * 90 AS avg_defensive_work,
+        SUM(final_third_passes * minutes_played) / SUM(minutes_played) * 90 AS avg_final_third_passes,
+        SUM(goal_creating_actions * minutes_played) / SUM(minutes_played) * 90 AS avg_goal_creating_actions,
+
+        -- Straight average for pass completion %
+        AVG(pass_completion_rate) AS avg_pass_completion_rate
+
+    FROM 
+        ${ref("radar_metrics_midfielders")}
+    GROUP BY 
+        player_id, season_id
+),
+
+percentiles AS (
+    SELECT
+        player_id,
+        season_id,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_progressive_passes) AS progressive_passes_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_progressive_carries) AS progressive_carries_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_shot_creating_actions) AS shot_creating_actions_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_defensive_work) AS defensive_work_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_final_third_passes) AS final_third_passes_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_goal_creating_actions) AS goal_creating_actions_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_pass_completion_rate) AS pass_completion_rate_percentile
+    FROM 
+        season_stats
+)
+
+SELECT 
+    s.player_id,
+    s.season_id,
+    s.total_minutes_played,
+    s.avg_progressive_passes,
+    s.avg_progressive_carries,
+    s.avg_shot_creating_actions,
+    s.avg_defensive_work,
+    s.avg_final_third_passes,
+    s.avg_goal_creating_actions,
+    s.avg_pass_completion_rate,
+
+    p.progressive_passes_percentile,
+    p.progressive_carries_percentile,
+    p.shot_creating_actions_percentile,
+    p.defensive_work_percentile,
+    p.final_third_passes_percentile,
+    p.goal_creating_actions_percentile,
+    p.pass_completion_rate_percentile
+
+FROM 
+    season_stats s
+JOIN 
+    percentiles p
+USING (player_id, season_id)

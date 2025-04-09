@@ -1,0 +1,63 @@
+config {
+    type: "view",
+    name: "radar_metrics_wingers_career",
+    description: "Career averages for wingers statistics",
+    schema: "analytics",
+    tags:["radar", "career"]
+}
+WITH career_stats AS (
+    SELECT 
+        player_id,
+        SUM(minutes_played) AS total_minutes_played,
+
+        -- Weighted metrics per 90
+        SUM(successful_take_ons * minutes_played) / SUM(minutes_played) * 90 AS avg_successful_take_ons,
+        SUM(crosses * minutes_played) / SUM(minutes_played) * 90 AS avg_crosses,
+        SUM(shots * minutes_played) / SUM(minutes_played) * 90 AS avg_shots,
+        SUM(progressive_carries * minutes_played) / SUM(minutes_played) * 90 AS avg_progressive_carries,
+        SUM(goal_creating_actions * minutes_played) / SUM(minutes_played) * 90 AS avg_goal_creating_actions,
+        SUM(non_penalty_xg * minutes_played) / SUM(minutes_played) * 90 AS avg_non_penalty_xg,
+        -- Straight average for aerial duels won rate
+        AVG(aerial_duels_won_rate) AS avg_aerial_duels_won_rate
+    FROM 
+        ${ref("radar_metrics_wingers")}
+    GROUP BY 
+        player_id
+),
+percentiles AS (
+    SELECT
+        player_id,
+        PERCENT_RANK() OVER(ORDER BY avg_successful_take_ons) AS successful_take_ons_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_crosses) AS crosses_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_shots) AS shots_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_progressive_carries) AS progressive_carries_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_aerial_duels_won_rate) AS aerial_duels_won_rate_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_goal_creating_actions) AS goal_creating_actions_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_non_penalty_xg) AS non_penalty_xg_percentile
+    FROM 
+        career_stats
+)
+SELECT 
+    c.player_id,
+    c.total_minutes_played,
+    c.avg_successful_take_ons,
+    c.avg_crosses,
+    c.avg_shots,
+    c.avg_progressive_carries,
+    c.avg_aerial_duels_won_rate,
+    c.avg_goal_creating_actions,
+    c.avg_non_penalty_xg,
+
+    p.successful_take_ons_percentile,
+    p.crosses_percentile,
+    p.shots_percentile,
+    p.progressive_carries_percentile,
+    p.aerial_duels_won_rate_percentile,
+    p.goal_creating_actions_percentile,
+    p.non_penalty_xg_percentile
+FROM 
+    career_stats c
+JOIN 
+    percentiles p
+ON 
+    c.player_id = p.player_id

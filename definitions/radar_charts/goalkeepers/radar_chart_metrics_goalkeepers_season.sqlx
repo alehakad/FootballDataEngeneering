@@ -1,0 +1,66 @@
+config {
+    type: "view",
+    name: "radar_metrics_goalkeepers_season",
+    description: "Season averages and percentiles for goalkeeper statistics",
+    schema: "analytics",
+    tags:["radar", "season"]
+}
+WITH season_stats AS (
+    SELECT 
+        player_id,
+        season_id,
+        SUM(minutes_played) AS total_minutes_played,
+        
+        -- Direct average for percentage metrics
+        AVG(save_percentage) AS avg_save_percentage,
+        AVG(crosses_stop_rate) AS avg_crosses_stop_rate,
+        AVG(goal_kick_launch_rate) AS avg_goal_kick_launch_rate,
+        
+        -- Weighted metrics per 90
+        SUM(delta_saves * minutes_played) / SUM(minutes_played) AS avg_delta_saves,
+        SUM(sweeper_actions * minutes_played) / SUM(minutes_played) * 90 AS avg_sweeper_actions,
+        SUM(average_sweeper_distance * minutes_played) / SUM(minutes_played) AS avg_sweeper_distance,
+        SUM(final_third_passes * minutes_played) / SUM(minutes_played) * 90 AS avg_final_third_passes
+    FROM 
+        ${ref("radar_metrics_goalkeepers")}
+    GROUP BY 
+        player_id, season_id
+),
+percentiles AS (
+    SELECT
+        player_id,
+        season_id,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_save_percentage) AS save_percentage_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_delta_saves) AS delta_saves_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_crosses_stop_rate) AS crosses_stop_rate_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_sweeper_actions) AS sweeper_actions_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_sweeper_distance) AS sweeper_distance_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_final_third_passes) AS final_third_passes_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_goal_kick_launch_rate) AS goal_kick_launch_rate_percentile
+    FROM 
+        season_stats
+)
+SELECT 
+    s.player_id,
+    s.season_id,
+    s.total_minutes_played,
+    s.avg_save_percentage,
+    s.avg_delta_saves,
+    s.avg_crosses_stop_rate,
+    s.avg_sweeper_actions,
+    s.avg_sweeper_distance,
+    s.avg_final_third_passes,
+    s.avg_goal_kick_launch_rate,
+    
+    p.save_percentage_percentile,
+    p.delta_saves_percentile,
+    p.crosses_stop_rate_percentile,
+    p.sweeper_actions_percentile,
+    p.sweeper_distance_percentile,
+    p.final_third_passes_percentile,
+    p.goal_kick_launch_rate_percentile
+FROM 
+    season_stats s
+JOIN 
+    percentiles p
+USING (player_id, season_id)

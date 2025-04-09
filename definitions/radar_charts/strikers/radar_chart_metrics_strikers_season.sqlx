@@ -1,0 +1,68 @@
+config {
+    type: "view",
+    name: "radar_metrics_strikers_season",
+    description: "Season averages and percentiles for strikers statistics",
+    schema: "analytics",
+    tags:["radar", "season"]
+}
+
+WITH season_stats AS (
+    SELECT 
+        player_id,
+        season_id,
+        SUM(minutes_played) AS total_minutes_played,
+
+        SUM(non_penalty_xg * minutes_played) / SUM(minutes_played) * 90 AS avg_non_penalty_xg,
+        SUM(shots * minutes_played) / SUM(minutes_played) * 90 AS avg_shots,
+        AVG(shots_accuracy) AS avg_shots_accuracy,
+        AVG(pressing_effectivness) AS avg_pressing_effectiveness,
+        AVG(aerial_duels_won_rate) AS avg_aerial_duels_won_rate,
+        AVG(box_presence) AS avg_box_presence,
+        SUM(goal_creating_actions * minutes_played) / SUM(minutes_played) * 90 AS avg_goal_creating_actions
+
+    FROM 
+        ${ref("radar_metrics_strikers")}
+    GROUP BY 
+        player_id, season_id
+),
+
+percentiles AS (
+    SELECT
+        player_id,
+        season_id,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_non_penalty_xg) AS non_penalty_xg_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_shots) AS shots_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_shots_accuracy) AS shots_accuracy_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_pressing_effectiveness) AS pressing_effectiveness_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_aerial_duels_won_rate) AS aerial_duels_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_box_presence) AS box_presence_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_goal_creating_actions) AS goal_creating_actions_percentile
+    FROM 
+        season_stats
+)
+
+SELECT 
+    s.player_id,
+    s.season_id,
+    s.total_minutes_played,
+    s.avg_non_penalty_xg,
+    s.avg_shots,
+    s.avg_shots_accuracy,
+    s.avg_pressing_effectiveness,
+    s.avg_aerial_duels_won_rate,
+    s.avg_box_presence,
+    s.avg_goal_creating_actions,
+
+    p.non_penalty_xg_percentile,
+    p.shots_percentile,
+    p.shots_accuracy_percentile,
+    p.pressing_effectiveness_percentile,
+    p.aerial_duels_percentile,
+    p.box_presence_percentile,
+    p.goal_creating_actions_percentile
+
+FROM 
+    season_stats s
+JOIN 
+    percentiles p
+USING (player_id, season_id)

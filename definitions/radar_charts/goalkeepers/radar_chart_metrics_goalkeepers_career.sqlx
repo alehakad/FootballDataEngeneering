@@ -1,0 +1,64 @@
+config {
+    type: "view",
+    name: "radar_metrics_goalkeepers_career",
+    description: "Career averages for goalkeeper statistics",
+    schema: "analytics",
+    tags:["radar", "career"]
+}
+WITH career_stats AS (
+    SELECT 
+        player_id,
+        SUM(minutes_played) AS total_minutes_played,
+
+        -- Direct average for percentage metrics
+        AVG(save_percentage) AS avg_save_percentage,
+        AVG(crosses_stop_rate) AS avg_crosses_stop_rate,
+        AVG(goal_kick_launch_rate) AS avg_goal_kick_launch_rate,
+        
+        -- Weighted metrics per 90
+        SUM(delta_saves * minutes_played) / SUM(minutes_played) AS avg_delta_saves,
+        SUM(sweeper_actions * minutes_played) / SUM(minutes_played) * 90 AS avg_sweeper_actions,
+        SUM(average_sweeper_distance * minutes_played) / SUM(minutes_played) AS avg_sweeper_distance,
+        SUM(final_third_passes * minutes_played) / SUM(minutes_played) * 90 AS avg_final_third_passes
+    FROM 
+        ${ref("radar_metrics_goalkeepers")}
+    GROUP BY 
+        player_id
+),
+percentiles AS (
+    SELECT
+        player_id,
+        PERCENT_RANK() OVER(ORDER BY avg_save_percentage) AS save_percentage_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_delta_saves) AS delta_saves_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_crosses_stop_rate) AS crosses_stop_rate_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_sweeper_actions) AS sweeper_actions_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_sweeper_distance) AS sweeper_distance_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_final_third_passes) AS final_third_passes_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_goal_kick_launch_rate) AS goal_kick_launch_rate_percentile
+    FROM 
+        career_stats
+)
+SELECT 
+    c.player_id,
+    c.total_minutes_played,
+    c.avg_save_percentage,
+    c.avg_delta_saves,
+    c.avg_crosses_stop_rate,
+    c.avg_sweeper_actions,
+    c.avg_sweeper_distance,
+    c.avg_final_third_passes,
+    c.avg_goal_kick_launch_rate,
+
+    p.save_percentage_percentile,
+    p.delta_saves_percentile,
+    p.crosses_stop_rate_percentile,
+    p.sweeper_actions_percentile,
+    p.sweeper_distance_percentile,
+    p.final_third_passes_percentile,
+    p.goal_kick_launch_rate_percentile
+FROM 
+    career_stats c
+JOIN 
+    percentiles p
+ON 
+    c.player_id = p.player_id

@@ -2,7 +2,8 @@ config {
     type: "view",
     name: "radar_metrics_centerbacks_career",
     description: "Career averages for centerbacks statistics",
-    schema: "analytics"
+    schema: "analytics",
+    tags:["radar", "career"]
 }
 
 WITH career_stats AS (

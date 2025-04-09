@@ -1,8 +1,9 @@
 config {
     type: "view",
     name: "radar_metrics_centerbacks_seasons",
-    description: "Every season averages for centerbacks statistics",
-    schema: "analytics"
+    description: "Every season averages and percentiles for centerbacks statistics",
+    schema: "analytics",
+    tags:["radar", "season"]
 }
 
 WITH seasons_stats AS (
@@ -10,12 +11,16 @@ WITH seasons_stats AS (
         player_id,
         season_id,
         SUM(minutes_played) AS total_minutes_played,
-        AVG(aerial_duels_won_rate) AS avg_aerial_duels_won_rate,
+
+        -- Weighted per-90 stats
         SUM(clearences * minutes_played) / SUM(minutes_played) * 90 AS avg_clearences,
         SUM(interceptions * minutes_played) / SUM(minutes_played) * 90 AS avg_interceptions,
         SUM(blocks * minutes_played) / SUM(minutes_played) * 90 AS avg_blocks,
         SUM(progressive_passes * minutes_played) / SUM(minutes_played) * 90 AS avg_progressive_passes,
-        AVG(long_pass_completion_rate) / SUM(minutes_played) * 90 AS avg_long_pass_completion_rate,
+
+        -- Simple averages
+        AVG(long_pass_completion_rate) AS avg_long_pass_completion_rate,
+        AVG(aerial_duels_won_rate) AS avg_aerial_duels_won_rate,
         AVG(defensive_aggression_index) AS avg_defensive_aggression_index
     FROM 
         ${ref("radar_metrics_centerbacks")}
@@ -28,13 +33,15 @@ percentiles AS (
     SELECT
         player_id,
         season_id,
-        PERCENT_RANK() OVER(ORDER BY avg_defensive_aggression_index) AS defensive_aggression_index_percentile,
-        PERCENT_RANK() OVER(ORDER BY avg_aerial_duels_won_rate) AS aerial_duels_won_percentile,
-        PERCENT_RANK() OVER(ORDER BY avg_clearences) AS clearences_percentile,
-        PERCENT_RANK() OVER(ORDER BY avg_interceptions) AS interceptions_percentile,
-        PERCENT_RANK() OVER(ORDER BY avg_blocks) AS blocks_percentile,
-        PERCENT_RANK() OVER(ORDER BY avg_progressive_passes) AS progressive_passes_percentile,
-        PERCENT_RANK() OVER(ORDER BY avg_long_pass_completion_rate) AS long_pass_completion_percentile
+
+        -- Percentiles computed *within each season*
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_defensive_aggression_index) AS defensive_aggression_index_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_aerial_duels_won_rate) AS aerial_duels_won_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_clearences) AS clearences_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_interceptions) AS interceptions_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_blocks) AS blocks_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_progressive_passes) AS progressive_passes_percentile,
+        PERCENT_RANK() OVER(PARTITION BY season_id ORDER BY avg_long_pass_completion_rate) AS long_pass_completion_percentile
     FROM 
         seasons_stats
 )
@@ -50,6 +57,8 @@ SELECT
     c.avg_progressive_passes,
     c.avg_long_pass_completion_rate,
     c.avg_defensive_aggression_index,
+
+    -- Percentiles
     p.defensive_aggression_index_percentile,
     p.aerial_duels_won_percentile,
     p.clearences_percentile,
@@ -57,9 +66,9 @@ SELECT
     p.blocks_percentile,
     p.progressive_passes_percentile,
     p.long_pass_completion_percentile
+
 FROM 
     seasons_stats c
 JOIN 
     percentiles p
-ON 
-    c.player_id = p.player_id
+USING (player_id, season_id)

@@ -1,0 +1,65 @@
+config {
+    type: "view",
+    name: "radar_metrics_strikers_career",
+    description: "Career averages and percentiles for strikers statistics",
+    schema: "analytics",
+    tags:["radar", "career"]
+}
+
+WITH career_stats AS (
+    SELECT 
+        player_id,
+        SUM(minutes_played) AS total_minutes_played,
+
+        SUM(non_penalty_xg * minutes_played) / SUM(minutes_played) * 90 AS avg_non_penalty_xg,
+        SUM(shots * minutes_played) / SUM(minutes_played) * 90 AS avg_shots,
+        AVG(shots_accuracy) AS avg_shots_accuracy,
+        AVG(pressing_effectivness) AS avg_pressing_effectiveness,
+        AVG(aerial_duels_won_rate) AS avg_aerial_duels_won_rate,
+        AVG(box_presence) AS avg_box_presence,
+        SUM(goal_creating_actions * minutes_played) / SUM(minutes_played) * 90 AS avg_goal_creating_actions
+
+    FROM 
+        ${ref("radar_metrics_strikers")}
+    GROUP BY 
+        player_id
+),
+
+percentiles AS (
+    SELECT
+        player_id,
+        PERCENT_RANK() OVER(ORDER BY avg_non_penalty_xg) AS non_penalty_xg_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_shots) AS shots_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_shots_accuracy) AS shots_accuracy_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_pressing_effectiveness) AS pressing_effectiveness_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_aerial_duels_won_rate) AS aerial_duels_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_box_presence) AS box_presence_percentile,
+        PERCENT_RANK() OVER(ORDER BY avg_goal_creating_actions) AS goal_creating_actions_percentile
+    FROM 
+        career_stats
+)
+
+SELECT 
+    c.player_id,
+    c.total_minutes_played,
+    c.avg_non_penalty_xg,
+    c.avg_shots,
+    c.avg_shots_accuracy,
+    c.avg_pressing_effectiveness,
+    c.avg_aerial_duels_won_rate,
+    c.avg_box_presence,
+    c.avg_goal_creating_actions,
+
+    p.non_penalty_xg_percentile,
+    p.shots_percentile,
+    p.shots_accuracy_percentile,
+    p.pressing_effectiveness_percentile,
+    p.aerial_duels_percentile,
+    p.box_presence_percentile,
+    p.goal_creating_actions_percentile
+
+FROM 
+    career_stats c
+JOIN 
+    percentiles p
+USING (player_id)
