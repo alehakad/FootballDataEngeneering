@@ -16,6 +16,97 @@ st.set_page_config(
 DB_PREFIX = "footballdataengineering.analytics"
 
 
+@st.cache_data(ttl=3600)
+def load_multiple_player_career_data(player_ids, radar_metrics_table):
+    try:
+        bq_client = bigquery.Client()
+
+        # Get the metrics columns dynamically
+        query_metadata = f"""
+            SELECT column_name
+            FROM `{DB_PREFIX}.INFORMATION_SCHEMA.COLUMNS`
+            WHERE table_name = '{radar_metrics_table}_career'
+            AND column_name LIKE '%_percentile'
+        """
+
+        metric_cols = bq_client.query(query_metadata).to_dataframe()
+
+        if metric_cols.empty:
+            return None, f"No percentile metrics found for table {radar_metrics_table}_career"
+
+        # Build the query dynamically
+        metric_cols_str = ", ".join(metric_cols['column_name'].tolist())
+
+        # Convert player_ids to a comma-separated string for the IN clause
+        player_ids_str = ", ".join([str(pid) for pid in player_ids])
+
+        query = f"""
+            SELECT 
+                p.player_id,
+                p.player_name,
+                {metric_cols_str}
+            FROM `{DB_PREFIX}.{radar_metrics_table}_career` m
+            JOIN `{DB_PREFIX}.dim_players` p ON m.player_id = p.player_id
+            WHERE m.player_id IN ({player_ids_str})
+        """
+
+        df = bq_client.query(query).to_dataframe()
+
+        # Convert values to numeric to ensure they are valid for the radar chart
+        for col in metric_cols['column_name'].tolist():
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        return df, None
+    except Exception as e:
+        return None, str(e)
+
+
+@st.cache_data(ttl=3600)
+def load_multiple_player_season_data(player_ids, season_id, radar_metrics_table):
+    try:
+        bq_client = bigquery.Client()
+
+        # Get the metrics columns dynamically
+        query_metadata = f"""
+            SELECT column_name
+            FROM `{DB_PREFIX}.INFORMATION_SCHEMA.COLUMNS`
+            WHERE table_name = '{radar_metrics_table}_seasons'
+            AND column_name LIKE '%_percentile'
+        """
+
+        metric_cols = bq_client.query(query_metadata).to_dataframe()
+
+        if metric_cols.empty:
+            return None, f"No percentile metrics found for table {radar_metrics_table}_seasons"
+
+        # Build the query dynamically
+        metric_cols_str = ", ".join(metric_cols['column_name'].tolist())
+
+        # Convert player_ids to a comma-separated string for the IN clause
+        player_ids_str = ", ".join([str(pid) for pid in player_ids])
+
+        query = f"""
+            SELECT 
+                p.player_id,
+                p.player_name,
+                m.season_id,
+                {metric_cols_str}
+            FROM `{DB_PREFIX}.{radar_metrics_table}_seasons` m
+            JOIN `{DB_PREFIX}.dim_players` p ON m.player_id = p.player_id
+            WHERE m.player_id IN ({player_ids_str}) AND m.season_id = '{season_id}'
+        """
+
+        df = bq_client.query(query).to_dataframe()
+
+        # Convert values to numeric to ensure they are valid for the radar chart
+        for col in metric_cols['column_name'].tolist():
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        return df, None
+    except Exception as e:
+        return None, str(e)
+
+
 # Cache data loading functions to improve performance
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def load_positions():
@@ -29,6 +120,63 @@ def load_positions():
         return df, None
     except Exception as e:
         return None, str(e)
+
+
+def create_radar_chart_multiple(df, metric_cols=None):
+    if df is None or df.empty:
+        return None
+
+    # Get only the percentile metrics columns if not provided
+    if metric_cols is None:
+        metric_cols = [col for col in df.columns if col.endswith('_percentile')]
+
+    if not metric_cols:
+        return None
+
+    # Create display names for the metrics
+    categories = [col.replace('_percentile', '').replace('_', ' ').title() for col in metric_cols]
+
+    # Define a color palette for multiple players
+    colors = ['blue', 'red', 'green', 'purple', 'orange', 'cyan', 'magenta', 'yellow']
+
+    fig = go.Figure()
+
+    # Group by player
+    for i, (player_id, player_data) in enumerate(df.groupby('player_id')):
+        if i >= len(colors):  # Limit to available colors
+            break
+
+        # Get values for this player
+        values = [float(player_data[col].iloc[0]) if not pd.isna(player_data[col].iloc[0]) else 0.0 for col in
+                  metric_cols]
+
+        # Close the loop for the radar
+        player_categories = categories + [categories[0]]
+        player_values = values + [values[0]]
+
+        player_name = player_data['player_name'].iloc[0]
+
+        fig.add_trace(go.Scatterpolar(
+            r=player_values,
+            theta=player_categories,
+            fill='toself',
+            name=player_name,
+            line_color=colors[i],
+            fillcolor=f'rgba({",".join([str(int(colors[i] == c) * 255) for c in ["blue", "red", "green"]])}, 0.3)'
+        ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1]
+            )
+        ),
+        showlegend=True,
+        title="Player Comparison Radar Chart"
+    )
+
+    return fig
 
 
 @st.cache_data(ttl=3600)
@@ -115,7 +263,7 @@ def load_seasons(radar_metrics_table):
 
 
 @st.cache_data(ttl=3600)
-def load_players_by_team_position_season(team_id, position_category, season_id):
+def load_players_by_team_position_season(team_id: int, position_category: str, season_id: str):
     try:
         bq_client = bigquery.Client()
         query = f"""
@@ -130,7 +278,7 @@ def load_players_by_team_position_season(team_id, position_category, season_id):
             WHERE 
                 fps.team_id = {team_id} 
                 AND fps.position_category = '{position_category}'
-                AND fps.season_id = {season_id}
+                AND fps.season_id = '{season_id}'
             ORDER BY p.player_name
         """
         df = bq_client.query(query).to_dataframe()
@@ -214,7 +362,7 @@ def load_player_season_data(player_id, season_id, radar_metrics_table):
                 season_id,
                 {metric_cols_str}
             FROM `{DB_PREFIX}.{radar_metrics_table}_seasons`
-            WHERE player_id = {player_id} AND season_id = {season_id}
+            WHERE player_id = {player_id} AND season_id = '{season_id}'
         """
 
         df = bq_client.query(query).to_dataframe()
@@ -314,7 +462,7 @@ elif positions_df is not None and teams_df is not None:
     # Create columns for the remaining filters
     col1, col2 = st.columns(2)
 
-    selected_player_id = None
+    selected_player_ids = None
     selected_player_name = None
     selected_player_details = None
 
@@ -330,24 +478,30 @@ elif positions_df is not None and teams_df is not None:
             elif position_players_df is not None and not position_players_df.empty:
                 # Player selection for career data, filtered by position
                 player_options = position_players_df["player_name"].tolist()
-                selected_player_name = st.selectbox(
-                    "Select Player:",
+                selected_player_names = st.multiselect(
+                    "Select Players (up to 5):",
                     options=player_options,
-                    index=0
+                    max_selections=5
                 )
 
-                # Get the selected player details
-                selected_player_row = position_players_df[position_players_df["player_name"] == selected_player_name]
-                if not selected_player_row.empty:
-                    selected_player_id = int(selected_player_row["player_id"].iloc[0])
-                    selected_player_details = selected_player_row
+                # Get all selected player IDs
+                selected_player_ids = []
+                for player_name in selected_player_names:
+                    player_row = position_players_df[position_players_df["player_name"] == player_name]
+                    if not player_row.empty:
+                        selected_player_ids.append(int(player_row["player_id"].iloc[0]))
 
-                    # Display player details
-                    st.write("Player Details:")
-                    nationality_raw = selected_player_row['nationality'].iloc[0]
-                    nationalities = [item['element'] for item in nationality_raw['list']]
-                    st.write(f"- Nationality: {', '.join(nationalities)}")
-                    st.write(f"- Birth Date: {selected_player_row['birth_date'].iloc[0]}")
+                # Display player details for selected players
+                if selected_player_ids:
+                    st.write("Selected Players:")
+                    for player_name in selected_player_names:
+                        player_row = position_players_df[position_players_df["player_name"] == player_name]
+                        if not player_row.empty:
+                            with st.expander(f"{player_name} Details"):
+                                nationality_raw = player_row['nationality'].iloc[0]
+                                nationalities = [item['element'] for item in nationality_raw['list']]
+                                st.write(f"- Nationality: {', '.join(nationalities)}")
+                                st.write(f"- Birth Date: {player_row['birth_date'].iloc[0]}")
             else:
                 st.warning(f"No players found for position category: {selected_category}")
 
@@ -390,26 +544,29 @@ elif positions_df is not None and teams_df is not None:
                     elif team_players_df is not None and not team_players_df.empty:
                         # Player selection from team
                         player_options = team_players_df["player_name"].tolist()
-                        selected_player_name = st.selectbox(
-                            "Select Player from Team:",
+                        selected_player_names = st.multiselect(
+                            "Select Players (up to 5):",
                             options=player_options,
-                            index=0 if player_options else None
+                            max_selections=5
                         )
 
                         # Get the selected player details
-                        if selected_player_name:
-                            selected_player_row = team_players_df[
-                                team_players_df["player_name"] == selected_player_name]
-                            if not selected_player_row.empty:
-                                selected_player_id = int(selected_player_row["player_id"].iloc[0])
-                                selected_player_details = selected_player_row
-
-                                # Display player details
-                                st.write("Player Details:")
-                                nationality_raw = selected_player_row['nationality'].iloc[0]
-                                nationalities = [item['element'] for item in nationality_raw['list']]
-                                st.write(f"- Nationality: {', '.join(nationalities)}")
-                                st.write(f"- Birth Date: {selected_player_row['birth_date'].iloc[0]}")
+                        selected_player_ids = []
+                        for player_name in selected_player_names:
+                            player_row = team_players_df[
+                                team_players_df["player_name"] == player_name]
+                            if not player_row.empty:
+                                selected_player_ids.append(int(player_row["player_id"].iloc[0]))
+                        if selected_player_ids:
+                            st.write("Selected Players:")
+                            for player_name in selected_player_names:
+                                player_row = team_players_df[team_players_df["player_name"] == player_name]
+                                if not player_row.empty:
+                                    with st.expander(f"{player_name} Details"):
+                                        nationality_raw = player_row['nationality'].iloc[0]
+                                        nationalities = [item['element'] for item in nationality_raw['list']]
+                                        st.write(f"- Nationality: {', '.join(nationalities)}")
+                                        st.write(f"- Birth Date: {player_row['birth_date'].iloc[0]}")
                     else:
                         st.warning(f"No players found for selected team and position in this season.")
             else:
@@ -417,38 +574,44 @@ elif positions_df is not None and teams_df is not None:
 
     # Load and display player data
     if st.button("Generate Radar Chart"):
-        if selected_player_id is None:
-            st.warning("Please select a player.")
+        if not selected_player_ids:
+            st.warning("Please select at least one player.")
         else:
             with st.spinner("Loading player statistics..."):
                 if data_type == "Career":
-                    player_data, data_error = load_player_career_data(selected_player_id, selected_radar_table)
+                    player_data, data_error = load_multiple_player_career_data(selected_player_ids,
+                                                                               selected_radar_table)
                 else:  # Season
-                    player_data, data_error = load_player_season_data(selected_player_id, selected_season,
-                                                                      selected_radar_table)
+                    player_data, data_error = load_multiple_player_season_data(selected_player_ids, selected_season,
+                                                                               selected_radar_table)
 
             if data_error:
                 st.error(f"Error loading player data: {data_error}")
             elif player_data is None or player_data.empty:
-                st.warning(f"No {data_type.lower()} data available for {selected_player_name}.")
+                st.warning(f"No {data_type.lower()} data available for the selected players.")
             else:
-                # Display the metric data
+                # Display the metric data in a table
+                display_df = player_data.copy()
+                # Keep only relevant columns for display
                 if data_type == "Career":
-                    display_df = player_data.drop(columns=["player_id"])
+                    display_cols = ['player_name'] + [col for col in display_df.columns if col.endswith('_percentile')]
                 else:
-                    display_df = player_data.drop(columns=["player_id", "season_id"])
-                st.dataframe(display_df, use_container_width=True, hide_index=True)
+                    display_cols = ['player_name', 'season_id'] + [col for col in display_df.columns if
+                                                                   col.endswith('_percentile')]
 
-                # Create and display radar chart with player name
-                chart = create_radar_chart(player_data, selected_player_name)
+                st.dataframe(display_df[display_cols], use_container_width=True, hide_index=True)
+
+                # Create and display radar chart with multiple players
+                metric_cols = [col for col in player_data.columns if col.endswith('_percentile')]
+                chart = create_radar_chart_multiple(player_data, metric_cols)
                 if chart:
                     st.plotly_chart(chart, use_container_width=True)
 
                 # Add download button for the player data
                 st.download_button(
                     label="Download player data as CSV",
-                    data=player_data.to_csv(index=False).encode('utf-8'),
-                    file_name=f"{selected_player_name}_{data_type.lower()}.csv",
+                    data=display_df[display_cols].to_csv(index=False).encode('utf-8'),
+                    file_name=f"player_comparison_{data_type.lower()}.csv",
                     mime='text/csv',
                 )
 
