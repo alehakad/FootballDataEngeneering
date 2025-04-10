@@ -122,5 +122,5 @@ aggregated data.
 - Filters by age, position, team style
 
 
-![Dasboard Example](./images/dashboard.png)
+![Dashboard Example](./images/dashboard.png)
 ---
