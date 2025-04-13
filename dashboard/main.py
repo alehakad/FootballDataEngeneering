@@ -107,6 +107,45 @@ def load_multiple_player_season_data(player_ids, season_id, radar_metrics_table)
         return None, str(e)
 
 
+# New function to load similar players
+@st.cache_data(ttl=3600)
+def load_similar_players(player_id, position_category, limit=5):
+    try:
+        bq_client = bigquery.Client()
+
+        # Convert position_category to table name format (e.g., "Striker" -> "strikers_similarity")
+        similarity_table = f"{position_category.lower().replace(' ', '_')}s_similarity"
+
+        # Query to get similar players
+        query = f"""
+            SELECT 
+                p.player_name,
+                s.similarity_score,
+                p.birth_date,
+                p.nationality
+            FROM `{DB_PREFIX}.{similarity_table}` s
+            JOIN `{DB_PREFIX}.dim_players` p ON s.similar_player_id = p.player_id
+            WHERE s.player_id = {player_id}
+            ORDER BY s.similarity_score DESC
+            LIMIT {limit}
+        """
+
+        df = bq_client.query(query).to_dataframe()
+
+        # Clean up the nationality field if it contains nested JSON/dict
+        if 'nationality' in df.columns:
+            df['nationality'] = df['nationality'].apply(
+                lambda x: x['element'] if isinstance(x, dict) and 'element' in x else
+                x[0]['element'] if isinstance(x, list) and len(x) > 0 and isinstance(x[0], dict) and 'element' in x[
+                    0] else
+                x
+            )
+
+        return df, None
+    except Exception as e:
+        return None, str(e)
+
+
 # Cache data loading functions to improve performance
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def load_positions():
@@ -425,6 +464,47 @@ def create_radar_chart(df, player_name=None):
     return fig
 
 
+# Display similar players section
+def display_similar_players(player_id, player_name, position_category):
+    st.subheader(f"Similar Players to {player_name}")
+
+    with st.spinner("Loading similar players..."):
+        similar_players, error = load_similar_players(player_id, position_category)
+
+    if error:
+        st.error(f"Error loading similar players: {error}")
+    elif similar_players is None or similar_players.empty:
+        st.info(f"No similar players found for {player_name}")
+    else:
+        # Display similar players in a table
+        display_df = similar_players.copy()
+
+        # Format similarity score as percentage
+        if 'similarity_score' in display_df.columns:
+            display_df['similarity_score'] = (display_df['similarity_score'] * 100).round(1).astype(str) + '%'
+
+        # Rename columns for better display
+        display_df = display_df.rename(columns={
+            'player_name': 'Similar Player',
+            'similarity_score': 'Similarity',
+            'birth_date': 'Birth Date'
+        })
+
+        # Format the nationality column
+        if 'nationality' in display_df.columns:
+            try:
+                display_df['Nationality'] = display_df['nationality'].apply(
+                    lambda x: ', '.join([item['element'] for item in x['list']]) if isinstance(x, dict) and 'list' in x
+                    else x
+                )
+                display_df = display_df.drop(columns=['nationality'])
+            except:
+                display_df = display_df.rename(columns={'nationality': 'Nationality'})
+
+        # Display the table
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+
 # App title and description
 st.title("Football Analytics Dashboard")
 
@@ -486,10 +566,13 @@ elif positions_df is not None and teams_df is not None:
 
                 # Get all selected player IDs
                 selected_player_ids = []
+                selected_player_names_to_ids = {}
                 for player_name in selected_player_names:
                     player_row = position_players_df[position_players_df["player_name"] == player_name]
                     if not player_row.empty:
-                        selected_player_ids.append(int(player_row["player_id"].iloc[0]))
+                        player_id = int(player_row["player_id"].iloc[0])
+                        selected_player_ids.append(player_id)
+                        selected_player_names_to_ids[player_name] = player_id
 
                 # Display player details for selected players
                 if selected_player_ids:
@@ -552,11 +635,15 @@ elif positions_df is not None and teams_df is not None:
 
                         # Get the selected player details
                         selected_player_ids = []
+                        selected_player_names_to_ids = {}
                         for player_name in selected_player_names:
                             player_row = team_players_df[
                                 team_players_df["player_name"] == player_name]
                             if not player_row.empty:
-                                selected_player_ids.append(int(player_row["player_id"].iloc[0]))
+                                player_id = int(player_row["player_id"].iloc[0])
+                                selected_player_ids.append(player_id)
+                                selected_player_names_to_ids[player_name] = player_id
+
                         if selected_player_ids:
                             st.write("Selected Players:")
                             for player_name in selected_player_names:
@@ -614,6 +701,19 @@ elif positions_df is not None and teams_df is not None:
                     file_name=f"player_comparison_{data_type.lower()}.csv",
                     mime='text/csv',
                 )
+
+                # Display similar players section for each selected player
+                st.header("Similar Players")
+
+                # Create tabs for each selected player
+                if len(selected_player_names) > 0:
+                    tabs = st.tabs(selected_player_names)
+
+                    for i, player_name in enumerate(selected_player_names):
+                        with tabs[i]:
+                            player_id = selected_player_names_to_ids.get(player_name)
+                            if player_id:
+                                display_similar_players(player_id, player_name, selected_category)
 
 # Footer with app information
 st.sidebar.markdown("---")
